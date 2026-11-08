@@ -1,0 +1,38 @@
+# Infraestructura SOLO para desarrollo local.
+# Postgres + MailDev en contenedores; backend y frontend se siguen ejecutando
+# con `npm run dev` en tu maquina (hot reload nativo).
+#
+# Uso:
+#   npm run dev:infra
+#   npm run dev
+#
+# Usa backend/.env para las credenciales (mismas que espera el backend).
+name: market-dev
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-market_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  maildev:
+    image: maildev/maildev:latest
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "1080:1080"
+
+volumes:
+  db_dev_data:

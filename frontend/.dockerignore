@@ -1,0 +1,17 @@
+node_modules
+dist
+.angular
+.git
+.gitignore
+.env
+.env.local
+.env.*.local
+src/environments/environment.generated.ts
+src/environments/environment.prod.generated.ts
+e2e
+test-results
+playwright-report
+*.log
+README.md
+AGENTS.md
+DESIGN.md

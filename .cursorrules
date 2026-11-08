@@ -1,0 +1,71 @@
+# Rules for AI Agents — Market E-commerce Project
+
+## Project Structure
+- `/backend` — NestJS 12 API (Node.js, TypeORM, PostgreSQL, JWT Auth)
+- `/frontend` — Angular 20 App (Tailwind CSS, Playwright E2E, PWA)
+- `/docs/ER.md` — Database Entity-Relationship diagram
+- `/frontend/AGENTS.md` — Frontend-specific design system & agent rules
+
+## Before Starting Any Task
+1. Read `/frontend/AGENTS.md` for design system tokens and conventions.
+2. Read `/frontend/DESIGN.md` for the complete Uber-inspired style reference.
+3. Ensure you understand the tech stack: Angular 20 standalone + Signals, NestJS 12 ESM, TypeORM, PostgreSQL.
+
+## Design System Compliance (Frontend)
+- **Font:** Inter (primary), system-ui fallback.
+- **Colors:** Only use documented CSS tokens (`--color-primary`, `--color-canvas`, etc.). No arbitrary colors.
+- **Buttons:** Pill shape (`border-radius: 999px`) unless explicitly documented otherwise.
+- **Spacing:** Use the token scale (`--spacing-md`, `--spacing-lg`, etc.).
+- **Max content width:** 1200px.
+
+## E2E Testing with Playwright (Mandatory)
+### When to write/update tests
+- Every new page or feature must include at least one E2E test.
+- Any UI change that affects user flows (auth, cart, checkout) requires test updates.
+- Use `data-testid` selectors only. Never use CSS classes or XPath.
+
+### How to run tests
+```bash
+cd frontend
+npm run e2e          # Run all tests headless
+npm run e2e:ui       # Run with UI for debugging
+npm run e2e:report   # Open HTML report
+```
+
+### Agent verification protocol
+Before marking any frontend task as complete:
+1. Run `npm run e2e`.
+2. If tests fail, fix them before completing the task.
+3. If the change is visual, run `npm run e2e:ui` and manually validate screenshots.
+4. Ensure tests pass on both Chromium and Mobile Chrome projects.
+
+## Backend Rules
+- NestJS uses ESM (`"type": "module"`). Imports must include `.js` extensions.
+- Entities are in `src/database/entities/`.
+- No circular imports between entities (causes runtime errors in ESM).
+- Always run `npm run build` after backend changes to verify TypeScript.
+
+## Tech Stack Summary
+| Layer | Tech |
+|-------|------|
+| Frontend Framework | Angular 20 (standalone, signals, new control flow) |
+| Frontend Styling | Tailwind CSS 4 + custom design tokens |
+| Frontend E2E | Playwright (Chromium + Mobile Chrome) |
+| Frontend PWA | @angular/pwa (Service Worker) |
+| Backend Framework | NestJS 12 |
+| Backend ORM | TypeORM 0.3 |
+| Database | PostgreSQL 16+ |
+| Auth | JWT (Passport) |
+| API Docs | Swagger/OpenAPI at `/api/docs` |
+
+## Local Development URLs
+- Frontend: `http://localhost:4200`
+- Backend API: `http://localhost:3000/api`
+- Swagger Docs: `http://localhost:3000/api/docs`
+
+## Node.js
+Node.js v24.20.0 LTS is installed locally in `.tools/node/`.
+Use the provided PowerShell scripts (`start-dev.ps1`, `start-backend.ps1`, `start-frontend.ps1`) or prefix PATH:
+```powershell
+$env:PATH = "C:\Users\Juan\OneDrive\Documentos\Projects\Market\.tools\node;$env:PATH"
+```

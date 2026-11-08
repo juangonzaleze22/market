@@ -1,0 +1,20 @@
+@if (!hideShell()) {
+  <app-top-banner />
+  <app-header #headerRef class="sticky top-0 z-50" />
+  <div
+    class="sticky z-40"
+    [style.top.px]="headerHeight()"
+  >
+    <app-navbar />
+  </div>
+}
+<main [class]="hideShell() ? '' : 'min-h-screen bg-canvas pb-16 md:pb-0'">
+  <router-outlet />
+</main>
+@if (!hideShell()) {
+  <app-footer />
+  <app-bottom-nav />
+}
+<app-cart-drawer />
+<app-auth-modal />
+<app-toast />

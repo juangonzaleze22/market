@@ -1,0 +1,22 @@
+{
+  "name": "market",
+  "version": "1.0.0",
+  "description": "Market E-commerce - Angular + NestJS + PostgreSQL",
+  "private": true,
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "dev": "powershell -ExecutionPolicy Bypass -File start-dev.ps1",
+    "dev:backend": "powershell -ExecutionPolicy Bypass -File start-backend.ps1",
+    "dev:frontend": "powershell -ExecutionPolicy Bypass -File start-frontend.ps1",
+    "dev:test-backend": "powershell -ExecutionPolicy Bypass -File start-test-backend.ps1",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:ps": "docker compose ps",
+    "dev:infra": "docker compose -f docker-compose.dev.yml --env-file backend/.env up -d",
+    "dev:infra:down": "docker compose -f docker-compose.dev.yml --env-file backend/.env down"
+  }
+}

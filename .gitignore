@@ -1,0 +1,76 @@
+# ============================================================
+# Dependencias
+# ============================================================
+node_modules/
+
+# ============================================================
+# Runtime local de Node (binarios pesados, no versionar)
+# ============================================================
+.tools/
+
+# ============================================================
+# Build / compilacion
+# ============================================================
+dist/
+build/
+out-tsc/
+*.tsbuildinfo
+
+# Cache de Angular
+.angular/
+
+# ============================================================
+# Testing / cobertura (generado por Playwright / Vitest)
+# ============================================================
+coverage/
+playwright-report/
+test-results/
+blob-report/
+__screenshots__/
+
+# ============================================================
+# Datos generados en runtime del backend
+# (subidas de usuarios y backups de la DB)
+# ============================================================
+backend/uploads/
+backend/.backups/
+
+# ============================================================
+# Variables de entorno / secretos
+# Se versionan .env.example y frontend/.env.production (sin secretos)
+# ============================================================
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ============================================================
+# Logs
+# ============================================================
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ============================================================
+# Sistema operativo / editores
+# ============================================================
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+*.swp
+*.swo
+.history/
+
+# ============================================================
+# Capturas de pantalla y scripts de depuracion locales
+# ============================================================
+/*.png
+/*.jpg
+/*.jpeg
+/Market/
+screenshot.js
