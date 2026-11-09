@@ -1,7 +1,18 @@
-import { Component, inject, OnInit, signal, computed, viewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  effect,
+  inject,
+  OnInit,
+  signal,
+  computed,
+  untracked,
+  viewChild,
+  ElementRef,
+} from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Product, ProductService } from '../../core/services/product.service';
+import { BranchService } from '../../core/services/branch.service';
 import { CartService } from '../../core/services/cart.service';
 import { FavoriteService } from '../../core/services/favorite.service';
 import { StockSubscriptionService } from '../../core/services/stock-subscription.service';
@@ -947,7 +958,15 @@ export class ProductDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly stockSubscriptions = inject(StockSubscriptionService);
+  private readonly branchService = inject(BranchService);
   private readonly galleryMain = viewChild<ElementRef<HTMLElement>>('galleryMain');
+
+  private readonly branchReload = effect(() => {
+    const loaded = this.branchService.loaded();
+    this.branchService.selectedBranch();
+    if (!loaded) return;
+    untracked(() => this.loadProduct());
+  });
 
   constructor() {
     const seeded = readProductFromState(this.router);
@@ -1054,9 +1073,17 @@ export class ProductDetail implements OnInit {
   });
 
   ngOnInit(): void {
+    this.branchService.load();
+  }
+
+  private loadProduct(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) return;
-    this.productService.getById(id).subscribe((product) => this.product.set(product));
+
+    this.productService.getById(id).subscribe({
+      next: (product) => this.product.set(product),
+      error: () => void this.router.navigate(['/shop']),
+    });
     this.productService.getAll().subscribe((products) => this.allProducts.set(products));
   }
 

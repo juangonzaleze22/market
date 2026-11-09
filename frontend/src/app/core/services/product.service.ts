@@ -96,9 +96,7 @@ export class ProductService {
     let params = new HttpParams();
     const branchId = this.branchService.getSelectedId();
     if (branchId) params = params.set('branchId', branchId);
-    return this.http.get<Product>(this.api.url(`${this.path}/${id}`), { params }).pipe(
-      catchError(() => of({} as Product))
-    );
+    return this.http.get<Product>(this.api.url(`${this.path}/${id}`), { params });
   }
 
   getTags(): Observable<Tag[]> {

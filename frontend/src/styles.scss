@@ -3,6 +3,7 @@
 @import "./styles/design-tokens.css";
 @import "swiper/css";
 @import "swiper/css/free-mode";
+@import "@angular/cdk/overlay-prebuilt.css";
 
 /* Global resets para el design system */
 html, body {

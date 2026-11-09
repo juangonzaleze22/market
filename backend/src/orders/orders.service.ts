@@ -266,6 +266,11 @@ export class OrdersService {
           });
 
           if (branchStock) {
+            if (!branchStock.isActive) {
+              throw new BadRequestException(
+                `Producto no disponible en la sucursal: ${product.name}`,
+              );
+            }
             if (branchStock.stock < item.quantity) {
               throw new BadRequestException(
                 `Stock insuficiente en la sucursal para ${product.name}`,

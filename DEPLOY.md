@@ -251,6 +251,9 @@ Abrir `http://tudominio.com`. Cuando funcione, poner `DB_SYNCHRONIZE=false` y
 
 ### 5.4 HTTPS (TLS)
 
+> Si usas **Dokploy** (sección 5.5), salta esta sección: su Traefik ya hace TLS
+> automático.
+
 El nginx incluido habla HTTP. Para HTTPS hay dos caminos:
 
 **Recomendado: Caddy en el host (automático, renueva solo).**
@@ -278,6 +281,90 @@ Caddy obtiene y renueva el certificado de Let's Encrypt solo. Recuerda usar
 
 > `TRUST_PROXY=2` es necesario porque el backend queda detrás de Caddy y del
 > nginx del contenedor. Con solo el nginx incluido, deja `TRUST_PROXY=1`.
+
+---
+
+## 5.5 · Despliegue con Dokploy (recomendado)
+
+Dokploy es un panel self-hosted sobre Docker + Traefik: deploys desde git
+(`main`), TLS automático (Let's Encrypt) y variables/volúmenes desde la UI.
+Con Dokploy **no necesitas Caddy** (sección 5.4): Traefik ocupa 80/443 y enruta
+tu dominio. Por eso existe `docker-compose.dokploy.yml`, que no publica puertos
+en `web` y trae los labels de Traefik.
+
+### 5.5.1 Instalar Dokploy
+
+1. VPS Ubuntu 24.04 (Hostinger ofrece Dokploy como plantilla; si no):
+   ```bash
+   curl -sSL https://dokploy.com/install.sh | sh
+   ```
+2. Abre `http://IP-del-vps:3000` y crea el usuario admin.
+3. Settings → Server: activa **HTTPS/Let's Encrypt** y pon un email válido.
+
+> Traefik de Dokploy ocupa `80` y `443`. No publiques esos puertos desde el
+> compose (`docker-compose.dokploy.yml` ya no los expone). Tampoco levantes
+> Caddy/nginx del host.
+
+### 5.5.2 Crear la aplicación
+
+1. Settings → Git: conecta GitHub/GitLab y autoriza el repo.
+2. Create Application → **Docker Compose**.
+3. Configura:
+   - **Repository:** tu repo.
+   - **Branch:** `main`.
+   - **Compose Path:** `./docker-compose.dokploy.yml`.
+   - Build context: raíz del repo (por defecto).
+4. En **Environment**, pega tus variables (equivale al `.env` de la raíz). Mínimo:
+   ```env
+   APP_DOMAIN=tudominio.com
+   NODE_ENV=production
+   FRONTEND_URL=https://tudominio.com
+   TRUST_PROXY=2
+   DB_USERNAME=postgres
+   DB_PASSWORD=<clave-larga-y-aleatoria>
+   DB_NAME=market_db
+   JWT_SECRET=<secreto-largo-y-aleatorio>
+   JWT_EXPIRES_IN=7d
+   DB_SYNCHRONIZE=true      # solo el primer deploy
+   RUN_SEED=false
+   AUTH_REQUIRE_EMAIL_VERIFICATION=true
+   AUTH_EXPOSE_VERIFICATION_TOKEN=false
+   MAIL_FROM="Market <no-reply@tudominio.com>"
+   MAIL_PROVIDER=<mailjet|resend|smtp>
+   MAIL_LOG_ONLY=false
+   ```
+   Copia el resto de `.env.example` (credenciales de correo, SMTP, etc.).
+5. **Deploy**.
+
+> `env_file: .env` del compose lee el archivo que Dokploy genera con estas
+> variables. `APP_DOMAIN` es obligatorio: sin él, Traefik no crea el router.
+> Si prefieres la pestaña **Domains** del panel, borra el bloque `labels:` del
+> servicio `web` y añade ahí `dominio → servicio web → puerto 80`.
+
+### 5.5.3 DNS y TLS
+
+1. Registro `A` de `APP_DOMAIN` → IP del VPS (espera propagación).
+2. En el primer deploy, Traefik emite el certificado y redirige HTTP→HTTPS.
+   Si al principio no carga, espera 1–2 min y revisa los logs de Traefik.
+
+### 5.5.4 Primer arranque y bloqueo de `synchronize`
+
+1. Primer deploy con `DB_SYNCHRONIZE=true` y `RUN_SEED=false`.
+2. Verifica `https://tudominio.com/api` y los logs del backend.
+3. Cambia `DB_SYNCHRONIZE=false` en Environment y pulsa **Redeploy**.
+
+### 5.5.5 Actualizaciones
+
+- **Auto-deploy:** activa el webhook que genera Dokploy en GitHub → cada push a
+  `main` redeploya.
+- **Manual:** botón **Deploy** en el panel.
+
+### 5.5.6 Volúmenes y backups
+
+Los volúmenes nombrados (`db_data`, `uploads_data`) persisten entre deploys.
+Backup igual que la sección 6, ejecutando `docker compose` desde el directorio
+del proyecto (o usando la terminal del panel). Dokploy guarda cada app en
+`/etc/dokploy/compose/<app>/code`.
 
 ---
 
@@ -329,7 +416,8 @@ Docker reconstruye las imágenes y recrea solo lo necesario. Los volúmenes
 ## 9. Resumen de archivos
 
 ```
-docker-compose.yml          # stack completo: db + backend + web
+docker-compose.yml          # stack completo: db + backend + web (local/manual)
+docker-compose.dokploy.yml  # variante para Dokploy (Traefik, sin puerto en web)
 docker-compose.dev.yml      # solo infra dev: postgres + maildev
 .env.example                # variables para Docker (copiar a .env)
 backend/Dockerfile          # build multi-stage de NestJS

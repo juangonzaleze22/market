@@ -4,8 +4,14 @@ import { In, Repository } from 'typeorm';
 import { Product } from '../database/entities/product.entity.js';
 import { OrderStatus } from '../database/entities/order.entity.js';
 import { Tag } from '../database/entities/tag.entity.js';
+import { Branch } from '../database/entities/branch.entity.js';
 import { BranchProductStock } from '../database/entities/branch-product-stock.entity.js';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto.js';
+import {
+  normalizeBranchStocks,
+  replaceBranchStocks,
+  sumBranchStocks,
+} from './branch-stock.util.js';
 import { FlashSalesService } from '../flash-sales/flash-sales.service.js';
 import { StockSubscriptionsService } from '../stock-subscriptions/stock-subscriptions.service.js';
 
@@ -18,6 +24,8 @@ export class ProductsService {
     private readonly tagRepository: Repository<Tag>,
     @InjectRepository(BranchProductStock)
     private readonly branchStockRepository: Repository<BranchProductStock>,
+    @InjectRepository(Branch)
+    private readonly branchRepository: Repository<Branch>,
     private readonly flashSalesService: FlashSalesService,
     private readonly stockSubscriptionsService: StockSubscriptionsService,
   ) {}
@@ -44,7 +52,7 @@ export class ProductsService {
       const branchStock = branchId ? stockByProduct.get(p.id) : undefined;
       return {
         ...p,
-        stock: branchStock ?? p.stock,
+        stock: branchId ? (branchStock ?? 0) : p.stock,
         flashPrice: flash
           ? this.calculateFlashPrice(Number(p.price), flash.discountPercent)
           : null,
@@ -81,6 +89,17 @@ export class ProductsService {
       .leftJoinAndSelect('product.tags', 'tags')
       .where('product.isActive = :isActive', { isActive: true });
 
+    if (query.branchId) {
+      qb.innerJoin(
+        BranchProductStock,
+        'branchStock',
+        'branchStock.productId = product.id AND branchStock.branchId = :branchId',
+        { branchId: query.branchId },
+      ).andWhere('branchStock.isActive = :branchActive', {
+        branchActive: true,
+      });
+    }
+
     if (query.categoryId) {
       qb.andWhere('product.categoryId = :categoryId', {
         categoryId: query.categoryId,
@@ -108,7 +127,11 @@ export class ProductsService {
     }
 
     if (query.inStock) {
-      qb.andWhere('product.stock > :stock', { stock: 0 });
+      if (query.branchId) {
+        qb.andWhere('branchStock.stock > :stock', { stock: 0 });
+      } else {
+        qb.andWhere('product.stock > :stock', { stock: 0 });
+      }
     }
 
     if (query.bestDeals) {
@@ -116,7 +139,8 @@ export class ProductsService {
     }
 
     // Sorting: available products always come first, then the requested sort
-    const availabilityOrder = 'CASE WHEN product.stock > 0 THEN 0 ELSE 1 END';
+    const stockColumn = query.branchId ? 'branchStock.stock' : 'product.stock';
+    const availabilityOrder = `CASE WHEN ${stockColumn} > 0 THEN 0 ELSE 1 END`;
     switch (query.sort) {
       case 'price-asc':
         qb.orderBy(availabilityOrder, 'ASC').addOrderBy('product.price', 'ASC');
@@ -199,7 +223,23 @@ export class ProductsService {
       return aAvailable - bAvailable;
     });
 
-    return this.attachFlashPrices(ordered.slice(0, safeLimit), branchId);
+    let result = ordered;
+    if (branchId) {
+      const branchRows = await this.branchStockRepository.find({
+        where: {
+          branchId,
+          productId: In(ordered.map((product) => product.id)),
+        },
+      });
+      const activeProductIds = new Set(
+        branchRows
+          .filter((row) => row.isActive)
+          .map((row) => row.productId),
+      );
+      result = ordered.filter((product) => activeProductIds.has(product.id));
+    }
+
+    return this.attachFlashPrices(result.slice(0, safeLimit), branchId);
   }
 
   async findAllPaginated(
@@ -252,14 +292,45 @@ export class ProductsService {
     if (!product) {
       throw new NotFoundException('Producto no encontrado');
     }
+
+    if (branchId) {
+      const branchStock = await this.branchStockRepository.findOne({
+        where: { productId: id, branchId },
+      });
+      if (!branchStock || !branchStock.isActive) {
+        throw new NotFoundException(
+          'Producto no disponible en esta sucursal',
+        );
+      }
+    }
+
     const [flashProduct] = await this.attachFlashPrices([product], branchId);
     return flashProduct;
   }
 
   async create(dto: CreateProductDto): Promise<Product> {
-    const { tagIds, ...productData } = dto;
+    const { tagIds, branchStocks, ...productData } = dto;
+    const normalizedStocks = normalizeBranchStocks(branchStocks);
+
+    if (branchStocks !== undefined) {
+      productData.stock = sumBranchStocks(normalizedStocks);
+    }
+
     const product = this.productRepository.create(productData);
     const saved = await this.productRepository.save(product);
+
+    if (branchStocks !== undefined) {
+      await replaceBranchStocks(
+        this.branchStockRepository,
+        saved.id,
+        normalizedStocks,
+      );
+    } else {
+      await this.assignStockToDefaultBranch(
+        saved.id,
+        Number(productData.stock ?? 0),
+      );
+    }
 
     if (tagIds && tagIds.length > 0) {
       const tags = await this.tagRepository.findByIds(tagIds);
@@ -276,7 +347,15 @@ export class ProductsService {
       throw new NotFoundException('Producto no encontrado');
     }
 
-    const { tagIds, ...productData } = dto;
+    const { tagIds, branchStocks, ...productData } = dto;
+    const normalizedStocks =
+      branchStocks !== undefined
+        ? normalizeBranchStocks(branchStocks)
+        : null;
+    if (normalizedStocks) {
+      productData.stock = sumBranchStocks(normalizedStocks);
+    }
+
     const previousStock = Number(product.stock);
     Object.assign(product, productData);
 
@@ -288,6 +367,14 @@ export class ProductsService {
 
     await this.productRepository.save(product);
 
+    if (normalizedStocks) {
+      await replaceBranchStocks(
+        this.branchStockRepository,
+        id,
+        normalizedStocks,
+      );
+    }
+
     if (previousStock <= 0 && Number(product.stock) > 0) {
       void this.stockSubscriptionsService
         .notifyRestock(id)
@@ -295,6 +382,24 @@ export class ProductsService {
     }
 
     return this.findOne(id);
+  }
+
+  private async assignStockToDefaultBranch(
+    productId: string,
+    stock: number,
+  ): Promise<void> {
+    const branch = await this.branchRepository.findOne({
+      where: { isDefault: true },
+    });
+    if (!branch) return;
+
+    await this.branchStockRepository.save(
+      this.branchStockRepository.create({
+        productId,
+        branchId: branch.id,
+        stock: Math.max(0, Math.trunc(stock)),
+      }),
+    );
   }
 
   async remove(id: string): Promise<void> {

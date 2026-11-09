@@ -257,6 +257,8 @@ export interface AdminProduct {
   categoryId: string;
   category?: { id: string; name: string; slug: string };
   tags?: Tag[];
+  branchStocks?: { branchId: string; stock: number; isActive: boolean }[];
+  branchStock?: number;
   createdAt: string;
   discountPercent?: number;
   discountPrice?: number;
@@ -614,29 +616,33 @@ export class AdminService {
     categoryId = '',
     isActive = '',
     stock = '',
-    sort = '',
-    order: 'ASC' | 'DESC' = 'DESC',
-    tagId = '',
-  ): Observable<AdminProductListResponse> {
-    let params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
-    if (search) {
-      params = params.set('search', search);
-    }
-    if (categoryId) {
-      params = params.set('categoryId', categoryId);
-    }
-    if (isActive) {
-      params = params.set('isActive', isActive);
-    }
-    if (stock) {
-      params = params.set('stock', stock);
-    }
-    if (sort) {
-      params = params.set('sort', sort).set('order', order);
-    }
-    if (tagId) {
-      params = params.set('tagId', tagId);
-    }
+      sort = '',
+      order: 'ASC' | 'DESC' = 'DESC',
+      tagId = '',
+      branchId = '',
+    ): Observable<AdminProductListResponse> {
+      let params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
+      if (search) {
+        params = params.set('search', search);
+      }
+      if (categoryId) {
+        params = params.set('categoryId', categoryId);
+      }
+      if (isActive) {
+        params = params.set('isActive', isActive);
+      }
+      if (stock) {
+        params = params.set('stock', stock);
+      }
+      if (sort) {
+        params = params.set('sort', sort).set('order', order);
+      }
+      if (tagId) {
+        params = params.set('tagId', tagId);
+      }
+      if (branchId) {
+        params = params.set('branchId', branchId);
+      }
     return this.http.get<AdminProductListResponse>(this.api.url(`${this.path}/products`), {
       params,
     });

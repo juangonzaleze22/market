@@ -4,6 +4,7 @@ import { Repository, LessThanOrEqual, MoreThanOrEqual, In } from 'typeorm';
 import { FlashSale } from '../database/entities/flash-sale.entity.js';
 import { FlashSaleItem } from '../database/entities/flash-sale-item.entity.js';
 import { Product } from '../database/entities/product.entity.js';
+import { BranchProductStock } from '../database/entities/branch-product-stock.entity.js';
 import { CreateFlashSaleDto, UpdateFlashSaleDto } from './dto/flash-sale.dto.js';
 
 @Injectable()
@@ -15,9 +16,11 @@ export class FlashSalesService {
     private readonly flashSaleItemRepository: Repository<FlashSaleItem>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(BranchProductStock)
+    private readonly branchStockRepository: Repository<BranchProductStock>,
   ) {}
 
-  async findActive(): Promise<any[]> {
+  async findActive(branchId?: string): Promise<any[]> {
     const now = new Date();
     const flashSales = await this.flashSaleRepository.find({
       where: {
@@ -29,6 +32,23 @@ export class FlashSalesService {
       order: { createdAt: 'DESC' },
     });
 
+    const productIds = new Set<string>();
+    for (const fs of flashSales) {
+      for (const item of fs.items) {
+        if (item.product) productIds.add(item.productId);
+      }
+    }
+
+    const branchStocks =
+      branchId && productIds.size > 0
+        ? await this.branchStockRepository.find({
+            where: { branchId, productId: In([...productIds]) },
+          })
+        : [];
+    const branchStockByProduct = new Map(
+      branchStocks.map((row) => [row.productId, row]),
+    );
+
     return flashSales.map((fs) => ({
       id: fs.id,
       title: fs.title,
@@ -37,31 +57,39 @@ export class FlashSalesService {
       endTime: fs.endTime,
       maxItems: fs.maxItems,
       items: fs.items
-        .filter((item) => item.product && item.product.isActive)
+        .filter((item) => {
+          if (!item.product || !item.product.isActive) return false;
+          if (!branchId) return true;
+          const branchStock = branchStockByProduct.get(item.productId);
+          return !!branchStock && branchStock.isActive;
+        })
         .slice(0, fs.maxItems)
-        .map((item) => ({
-          id: item.id,
-          productId: item.productId,
-          flashSaleId: fs.id,
-          quantity: item.quantity,
-          product: {
-            id: item.product.id,
-            name: item.product.name,
-            slug: item.product.slug,
-            price: Number(item.product.price),
-            featuredImage: item.product.featuredImage,
-            images: item.product.images,
-            discountPercent: item.product.discountPercent,
-            discountPrice: item.product.discountPrice,
-            hasDiscount: item.product.hasDiscount,
-            category: item.product.category,
-            stock: item.product.stock,
-          },
-          flashPrice: this.calculateFlashPrice(
-            Number(item.product.price),
-            Number(fs.discountPercent),
-          ),
-        })),
+        .map((item) => {
+          const branchStock = branchStockByProduct.get(item.productId);
+          return {
+            id: item.id,
+            productId: item.productId,
+            flashSaleId: fs.id,
+            quantity: item.quantity,
+            product: {
+              id: item.product.id,
+              name: item.product.name,
+              slug: item.product.slug,
+              price: Number(item.product.price),
+              featuredImage: item.product.featuredImage,
+              images: item.product.images,
+              discountPercent: item.product.discountPercent,
+              discountPrice: item.product.discountPrice,
+              hasDiscount: item.product.hasDiscount,
+              category: item.product.category,
+              stock: branchStock ? branchStock.stock : item.product.stock,
+            },
+            flashPrice: this.calculateFlashPrice(
+              Number(item.product.price),
+              Number(fs.discountPercent),
+            ),
+          };
+        }),
     }));
   }
 

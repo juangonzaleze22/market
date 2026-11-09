@@ -1,10 +1,12 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   OnInit,
   OnDestroy,
   signal,
+  untracked,
   CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
@@ -15,6 +17,7 @@ import {
   FlashSaleItem,
 } from '../../core/services/flash-sales.service';
 import { CartService } from '../../core/services/cart.service';
+import { BranchService } from '../../core/services/branch.service';
 
 interface TimeLeft {
   hours: number;
@@ -422,6 +425,7 @@ interface TimeLeft {
 export class FlashSalesSection implements OnInit, OnDestroy {
   private readonly flashSalesService = inject(FlashSalesService);
   private readonly cartService = inject(CartService);
+  private readonly branchService = inject(BranchService);
 
   protected readonly activeFlashSales = signal<FlashSale[]>([]);
   protected readonly availableFlashSales = computed(() =>
@@ -436,6 +440,13 @@ export class FlashSalesSection implements OnInit, OnDestroy {
 
   private timerInterval: ReturnType<typeof setInterval> | null = null;
   private currentEndTime: Date | null = null;
+
+  private readonly branchReload = effect(() => {
+    const loaded = this.branchService.loaded();
+    this.branchService.selectedBranch();
+    if (!loaded) return;
+    untracked(() => this.loadFlashSales());
+  });
 
   ngOnInit(): void {
     this.loadFlashSales();

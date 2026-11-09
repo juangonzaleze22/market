@@ -1,5 +1,15 @@
-import { Component, computed, CUSTOM_ELEMENTS_SCHEMA, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  CUSTOM_ELEMENTS_SCHEMA,
+  effect,
+  inject,
+  OnInit,
+  signal,
+  untracked,
+} from '@angular/core';
 import { Product, ProductService } from '../../core/services/product.service';
+import { BranchService } from '../../core/services/branch.service';
 import { ProductCard } from '../../shared/ui/product-card';
 import { TrustStrip } from '../../shared/ui/trust-strip';
 import { SectionHeader } from '../../shared/ui/section-header';
@@ -118,10 +128,18 @@ import { FlashSalesSection } from '../../shared/ui/flash-sales-section';
 })
 export class Home implements OnInit {
   private readonly productService = inject(ProductService);
+  private readonly branchService = inject(BranchService);
 
   protected readonly products = signal<Product[]>([]);
   protected readonly bestSellers = signal<Product[]>([]);
   protected readonly activeTab = signal('All');
+
+  private readonly branchReload = effect(() => {
+    const loaded = this.branchService.loaded();
+    this.branchService.selectedBranch();
+    if (!loaded) return;
+    untracked(() => this.loadProducts());
+  });
 
   protected readonly availableProducts = computed(() =>
     this.products().filter((p) => p.stock > 0),
@@ -162,6 +180,10 @@ export class Home implements OnInit {
   });
 
   ngOnInit(): void {
+    this.branchService.load();
+  }
+
+  private loadProducts(): void {
     this.productService.getAll().subscribe((products) => this.products.set(products));
     this.productService.getBestSellers(8).subscribe((products) => this.bestSellers.set(products));
   }

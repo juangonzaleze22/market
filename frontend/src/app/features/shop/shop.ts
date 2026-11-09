@@ -1,8 +1,9 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest } from 'rxjs';
 import { Product, ProductService, Tag } from '../../core/services/product.service';
 import { Category, CategoryService } from '../../core/services/category.service';
+import { BranchService } from '../../core/services/branch.service';
 import { ProductCard } from '../../shared/ui/product-card';
 import { PageHero, Breadcrumb } from '../../shared/ui/page-hero';
 import { ActiveFilters, ActiveFilter } from '../../shared/ui/active-filters';
@@ -296,8 +297,16 @@ import { SortDropdown, SortOption } from './sort-dropdown';
 export class Shop implements OnInit {
   private readonly productService = inject(ProductService);
   private readonly categoryService = inject(CategoryService);
+  private readonly branchService = inject(BranchService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+
+  private readonly branchReload = effect(() => {
+    const loaded = this.branchService.loaded();
+    this.branchService.selectedBranch();
+    if (!loaded) return;
+    untracked(() => this.loadProducts());
+  });
 
   protected readonly breadcrumbs: Breadcrumb[] = [
     { label: 'Inicio', link: '/' },
@@ -388,6 +397,7 @@ export class Shop implements OnInit {
   });
 
   ngOnInit(): void {
+    this.branchService.load();
     combineLatest([
       this.categoryService.getAll(),
       this.productService.getTags(),

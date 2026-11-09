@@ -4,6 +4,7 @@ import { ProductsController } from './products.controller.js';
 import { ProductsService } from './products.service.js';
 import {
   Product,
+  Branch,
   BranchProductStock,
 } from '../database/entities/index.js';
 import { Tag } from '../database/entities/tag.entity.js';
@@ -12,7 +13,7 @@ import { StockSubscriptionsModule } from '../stock-subscriptions/stock-subscript
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Product, Tag, BranchProductStock]),
+    TypeOrmModule.forFeature([Product, Branch, Tag, BranchProductStock]),
     FlashSalesModule,
     StockSubscriptionsModule,
   ],

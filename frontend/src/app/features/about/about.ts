@@ -1,7 +1,8 @@
-﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { Breadcrumb, PageHero } from '../../shared/ui/page-hero';
 import { CategoryService } from '../../core/services/category.service';
 import { ProductService } from '../../core/services/product.service';
+import { BranchService } from '../../core/services/branch.service';
 
 interface StoryImage {
   src: string;
@@ -729,6 +730,14 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export class About implements OnInit {
   private readonly productService = inject(ProductService);
   private readonly categoryService = inject(CategoryService);
+  private readonly branchService = inject(BranchService);
+
+  private readonly branchReload = effect(() => {
+    const loaded = this.branchService.loaded();
+    this.branchService.selectedBranch();
+    if (!loaded) return;
+    untracked(() => this.loadCounts());
+  });
 
   protected readonly breadcrumbs: Breadcrumb[] = [
     { label: 'Inicio', link: '/' },
@@ -800,6 +809,10 @@ export class About implements OnInit {
   protected readonly subscribed = signal(false);
 
   ngOnInit(): void {
+    this.branchService.load();
+  }
+
+  private loadCounts(): void {
     this.productService
       .getAll()
       .subscribe((products) => this.productCount.set(products.length));

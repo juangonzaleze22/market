@@ -1080,6 +1080,17 @@ export class Checkout implements OnInit {
       this.zones.set(zones);
     });
   });
+
+  private readonly addressBranchEffect = effect(() => {
+    const options = this.branchAddresses();
+    const current = this.selectedAddressId();
+    if (options.length === 0) return;
+    if (!options.some((address) => address.id === current)) {
+      const preferred =
+        options.find((address) => address.isDefault) ?? options[0];
+      this.selectedAddressId.set(preferred.id);
+    }
+  });
   readonly showAddressForm = signal(false);
   readonly savingAddress = signal(false);
   readonly paymentMethod = signal<PaymentMethod>('pago_movil');

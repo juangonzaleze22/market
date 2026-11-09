@@ -111,6 +111,7 @@ export class AdminController {
     @Query('sort') sort?: string,
     @Query('order') order?: string,
     @Query('tagId') tagId?: string,
+    @Query('branchId') branchId?: string,
   ) {
     return this.adminService.findProducts({
       page: page ? parseInt(page, 10) : 1,
@@ -122,6 +123,7 @@ export class AdminController {
       sort,
       order: (order === 'ASC' || order === 'DESC') ? order : 'DESC',
       tagId,
+      branchId,
     });
   }
 

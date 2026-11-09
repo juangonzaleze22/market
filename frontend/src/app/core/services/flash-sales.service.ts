@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
+import { BranchService } from './branch.service';
 
 export interface FlashSaleProduct {
   id: string;
@@ -40,9 +41,16 @@ export interface FlashSale {
   providedIn: 'root',
 })
 export class FlashSalesService {
-  constructor(private http: HttpClient, private api: ApiService) {}
+  constructor(
+    private http: HttpClient,
+    private api: ApiService,
+    private branchService: BranchService,
+  ) {}
 
   getActive(): Observable<FlashSale[]> {
-    return this.http.get<FlashSale[]>(this.api.url('flash-sales/active'));
+    let params = new HttpParams();
+    const branchId = this.branchService.getSelectedId();
+    if (branchId) params = params.set('branchId', branchId);
+    return this.http.get<FlashSale[]>(this.api.url('flash-sales/active'), { params });
   }
 }

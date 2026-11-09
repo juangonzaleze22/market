@@ -143,7 +143,7 @@ export class SeedService {
         await this.categoryRepository.update({ slug: category.slug }, { icon: category.icon });
       }
       await this.backfillProductFields();
-      await this.backfillBranchData(defaultBranch.id);
+      await this.backfillBranchData();
       return;
     }
 
@@ -189,7 +189,7 @@ export class SeedService {
       await this.productRepository.save(created);
     }
 
-    await this.backfillBranchData(defaultBranch.id);
+    await this.backfillBranchData();
 
     console.log('Seeders ejecutados correctamente.');
   }
@@ -305,37 +305,54 @@ export class SeedService {
       .execute();
   }
 
-  private async backfillBranchData(branchId: string): Promise<void> {
-    await this.orderRepository
-      .createQueryBuilder()
-      .update(Order)
-      .set({ branchId })
-      .where('branchId IS NULL')
-      .execute();
+  private async backfillBranchData(): Promise<void> {
+    const defaultBranch = await this.branchRepository.findOne({
+      where: { isDefault: true },
+    });
+    const defaultBranchId = defaultBranch?.id;
 
-    await this.addressRepository
-      .createQueryBuilder()
-      .update(Address)
-      .set({ branchId })
-      .where('branchId IS NULL')
-      .execute();
+    if (defaultBranchId) {
+      await this.orderRepository
+        .createQueryBuilder()
+        .update(Order)
+        .set({ branchId: defaultBranchId })
+        .where('branchId IS NULL')
+        .execute();
+
+      await this.addressRepository
+        .createQueryBuilder()
+        .update(Address)
+        .set({ branchId: defaultBranchId })
+        .where('branchId IS NULL')
+        .execute();
+    }
 
     const products = await this.productRepository.find();
-    const existingRows = await this.branchStockRepository.find({
-      where: { branchId },
-    });
-    const existingProductIds = new Set(
-      existingRows.map((row) => row.productId),
+    const branches = await this.branchRepository.find();
+    if (products.length === 0 || branches.length === 0) return;
+
+    const existingRows = await this.branchStockRepository.find();
+    const existingKeys = new Set(
+      existingRows.map((row) => `${row.productId}:${row.branchId}`),
     );
 
-    for (const product of products) {
-      if (existingProductIds.has(product.id)) continue;
-      const row = this.branchStockRepository.create({
-        branchId,
-        productId: product.id,
-        stock: product.stock,
-      });
-      await this.branchStockRepository.save(row);
+    const rows: BranchProductStock[] = [];
+    for (const branch of branches) {
+      for (const product of products) {
+        const key = `${product.id}:${branch.id}`;
+        if (existingKeys.has(key)) continue;
+        rows.push(
+          this.branchStockRepository.create({
+            branchId: branch.id,
+            productId: product.id,
+            stock: branch.id === defaultBranchId ? product.stock : 0,
+          }),
+        );
+      }
+    }
+
+    if (rows.length > 0) {
+      await this.branchStockRepository.save(rows);
     }
   }
 

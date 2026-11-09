@@ -3,11 +3,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { FlashSale } from '../database/entities/flash-sale.entity.js';
 import { FlashSaleItem } from '../database/entities/flash-sale-item.entity.js';
 import { Product } from '../database/entities/product.entity.js';
+import { BranchProductStock } from '../database/entities/branch-product-stock.entity.js';
 import { FlashSalesService } from './flash-sales.service.js';
 import { FlashSalesController, AdminFlashSalesController } from './flash-sales.controller.js';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([FlashSale, FlashSaleItem, Product])],
+  imports: [
+    TypeOrmModule.forFeature([
+      FlashSale,
+      FlashSaleItem,
+      Product,
+      BranchProductStock,
+    ]),
+  ],
   controllers: [FlashSalesController, AdminFlashSalesController],
   providers: [FlashSalesService],
   exports: [FlashSalesService],

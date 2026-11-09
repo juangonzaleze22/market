@@ -5,10 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import type { DeepPartial } from 'typeorm';
 import { hash } from 'bcryptjs';
 import {
+  Branch,
+  BranchProductStock,
   Category,
   Expense,
   ExpenseKind,
@@ -22,6 +24,11 @@ import {
 } from '../database/entities/index.js';
 import { resolvePeriod, toDateOnly } from '../common/utils/period.util.js';
 import { CreateProductDto, UpdateProductDto } from '../products/dto/product.dto.js';
+import {
+  normalizeBranchStocks,
+  replaceBranchStocks,
+  sumBranchStocks,
+} from '../products/branch-stock.util.js';
 import { CreateCategoryDto, UpdateCategoryDto } from '../categories/dto/category.dto.js';
 import { CreateTagDto, UpdateTagDto } from '../tags/dto/tag.dto.js';
 import { CreateUserDto, ListUsersQueryDto } from './dto/admin.dto.js';
@@ -42,6 +49,10 @@ export class AdminService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(BranchProductStock)
+    private readonly branchStockRepository: Repository<BranchProductStock>,
+    @InjectRepository(Branch)
+    private readonly branchRepository: Repository<Branch>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     @InjectRepository(Order)
@@ -307,74 +318,122 @@ export class AdminService {
     updatedAt: 'product.updatedAt',
   };
 
-  async findProducts(query: { page?: number; limit?: number; search?: string; categoryId?: string; isActive?: boolean; stock?: string; sort?: string; order?: string; tagId?: string }) {
+  async findProducts(query: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    categoryId?: string;
+    isActive?: boolean;
+    stock?: string;
+    sort?: string;
+    order?: string;
+    tagId?: string;
+    branchId?: string;
+  }) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
+    const branchId = query.branchId?.trim() || null;
 
-    const sortColumn = AdminService.PRODUCT_SORT_MAP[query.sort ?? ''] ?? 'product.createdAt';
+    const sortColumn =
+      branchId && query.sort === 'stock'
+        ? 'branchStock.stock'
+        : (AdminService.PRODUCT_SORT_MAP[query.sort ?? ''] ?? 'product.createdAt');
     const order = (query.order ?? 'DESC') as 'ASC' | 'DESC';
 
     const qb = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category')
-      .leftJoinAndSelect('product.tags', 'tags')
-      .orderBy(sortColumn, order)
+      .leftJoinAndSelect('product.tags', 'tags');
+
+    if (branchId) {
+      qb.innerJoin(
+        'branch_product_stock',
+        'branchStock',
+        'branchStock.productId = product.id AND branchStock.branchId = :branchId',
+        { branchId },
+      );
+    }
+
+    qb.orderBy(sortColumn, order)
       .skip((page - 1) * limit)
       .take(limit);
 
+    let hasWhere = false;
+    const addCondition = (
+      condition: string,
+      params?: Record<string, unknown>,
+    ): void => {
+      if (hasWhere) {
+        qb.andWhere(condition, params);
+      } else {
+        qb.where(condition, params);
+        hasWhere = true;
+      }
+    };
+
     if (query.search) {
-      qb.where(
+      addCondition(
         '(product.name ILIKE :search OR product.sku ILIKE :search)',
         { search: `%${query.search}%` },
       );
     }
 
     if (query.categoryId) {
-      if (query.search) {
-        qb.andWhere('category.id = :categoryId', { categoryId: query.categoryId });
-      } else {
-        qb.where('category.id = :categoryId', { categoryId: query.categoryId });
-      }
+      addCondition('category.id = :categoryId', { categoryId: query.categoryId });
     }
 
     if (query.tagId) {
-      const hasWhere = query.search || query.categoryId;
-      if (hasWhere) {
-        qb.andWhere('tags.id = :tagId', { tagId: query.tagId });
-      } else {
-        qb.where('tags.id = :tagId', { tagId: query.tagId });
-      }
+      addCondition('tags.id = :tagId', { tagId: query.tagId });
     }
 
     if (query.isActive !== undefined) {
-      const condition = 'product.isActive = :isActive';
-      const params = { isActive: query.isActive };
-      if (query.search || query.categoryId) {
-        qb.andWhere(condition, params);
-      } else {
-        qb.where(condition, params);
-      }
+      addCondition('product.isActive = :isActive', { isActive: query.isActive });
     }
 
     if (query.stock) {
+      const stockExpr = branchId ? 'branchStock.stock' : 'product.stock';
       let stockCondition = '';
       if (query.stock === 'low') {
-        stockCondition = 'product.stock > 0 AND product.stock <= 5';
+        stockCondition = `${stockExpr} > 0 AND ${stockExpr} <= 5`;
       } else if (query.stock === 'out') {
-        stockCondition = 'product.stock <= 0';
+        stockCondition = `${stockExpr} <= 0`;
       } else if (query.stock === 'in') {
-        stockCondition = 'product.stock > 5';
+        stockCondition = `${stockExpr} > 5`;
       }
       if (stockCondition) {
-        if (query.search || query.categoryId || query.isActive !== undefined) {
-          qb.andWhere(stockCondition);
-        } else {
-          qb.where(stockCondition);
-        }
+        addCondition(stockCondition);
       }
     }
 
     const [data, total] = await qb.getManyAndCount();
+
+    if (data.length > 0) {
+      const stockRows = await this.branchStockRepository.find({
+        where: { productId: In(data.map((product) => product.id)) },
+      });
+      const stocksByProduct = new Map<
+        string,
+        { branchId: string; stock: number; isActive: boolean }[]
+      >();
+      for (const row of stockRows) {
+        const list = stocksByProduct.get(row.productId) ?? [];
+        list.push({
+          branchId: row.branchId,
+          stock: row.stock,
+          isActive: row.isActive,
+        });
+        stocksByProduct.set(row.productId, list);
+      }
+      for (const product of data) {
+        const branchStocks = stocksByProduct.get(product.id) ?? [];
+        (product as any).branchStocks = branchStocks;
+        if (branchId) {
+          (product as any).branchStock =
+            branchStocks.find((entry) => entry.branchId === branchId)?.stock ?? 0;
+        }
+      }
+    }
+
     return {
       data,
       total,
@@ -385,9 +444,28 @@ export class AdminService {
   }
 
   async createProduct(dto: CreateProductDto) {
-    const { tagIds, ...productData } = dto;
+    const { tagIds, branchStocks, ...productData } = dto;
+    const normalizedStocks = normalizeBranchStocks(branchStocks);
+
+    if (branchStocks !== undefined) {
+      productData.stock = sumBranchStocks(normalizedStocks);
+    }
+
     const product = this.productRepository.create(productData);
     const saved = await this.productRepository.save(product);
+
+    if (branchStocks !== undefined) {
+      await replaceBranchStocks(
+        this.branchStockRepository,
+        saved.id,
+        normalizedStocks,
+      );
+    } else {
+      await this.assignStockToDefaultBranch(
+        saved.id,
+        Number(productData.stock ?? 0),
+      );
+    }
 
     if (tagIds && tagIds.length > 0) {
       const tags = await this.tagRepository.findByIds(tagIds);
@@ -407,7 +485,15 @@ export class AdminService {
       throw new NotFoundException('Producto no encontrado');
     }
 
-    const { tagIds, ...productData } = dto;
+    const { tagIds, branchStocks, ...productData } = dto;
+    const normalizedStocks =
+      branchStocks !== undefined
+        ? normalizeBranchStocks(branchStocks)
+        : null;
+    if (normalizedStocks) {
+      productData.stock = sumBranchStocks(normalizedStocks);
+    }
+
     Object.assign(product, productData);
 
     if (tagIds !== undefined) {
@@ -416,10 +502,37 @@ export class AdminService {
     }
 
     await this.productRepository.save(product);
+
+    if (normalizedStocks) {
+      await replaceBranchStocks(
+        this.branchStockRepository,
+        id,
+        normalizedStocks,
+      );
+    }
+
     return this.productRepository.findOne({
       where: { id },
       relations: ['category', 'tags'],
     });
+  }
+
+  private async assignStockToDefaultBranch(
+    productId: string,
+    stock: number,
+  ): Promise<void> {
+    const branch = await this.branchRepository.findOne({
+      where: { isDefault: true },
+    });
+    if (!branch) return;
+
+    await this.branchStockRepository.save(
+      this.branchStockRepository.create({
+        productId,
+        branchId: branch.id,
+        stock: Math.max(0, Math.trunc(stock)),
+      }),
+    );
   }
 
   async removeProduct(id: string) {

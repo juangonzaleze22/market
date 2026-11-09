@@ -1,11 +1,12 @@
 import {
   Component,
+  effect,
   ElementRef,
   HostListener,
-  computed,
   inject,
   OnInit,
   signal,
+  untracked,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
@@ -15,9 +16,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { AuthModalService } from '../../core/services/auth-modal.service';
 import { CartService } from '../../core/services/cart.service';
 import { FavoriteService } from '../../core/services/favorite.service';
-import { Address, AddressService } from '../../core/services/address.service';
-import { Branch, BranchService } from '../../core/services/branch.service';
 import { Product, ProductService } from '../../core/services/product.service';
+import { BranchService } from '../../core/services/branch.service';
 import { SiteSettingsService } from '../../core/services/site-settings.service';
 import { AppNotification, NotificationsService } from '../../core/services/notifications.service';
 
@@ -31,125 +31,6 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
         <a routerLink="/" class="header-logo" data-testid="logo" aria-label="Ir al inicio">
           <img src="/assets/icons/logo-white.webp" alt="Tu Mercadito" class="header-logo-img" />
         </a>
-
-        <!-- Location -->
-        <div class="header-location" #locationContainer>
-          <button
-            type="button"
-            class="location-btn"
-            (click)="locationOpen.set(!locationOpen())"
-            [attr.aria-expanded]="locationOpen()"
-            data-testid="location-button"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"></path>
-              <circle cx="12" cy="10" r="3"></circle>
-            </svg>
-            <span class="location-text">
-              <span class="location-caption">Ubicación</span>
-              <span class="location-value">
-                {{ locationLabel() }}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </span>
-            </span>
-          </button>
-
-          @if (locationOpen()) {
-            <div class="dropdown location-dropdown" data-testid="location-dropdown">
-              <p class="location-section-title px-lg py-sm">Sucursal</p>
-              @for (branch of branchService.branches(); track branch.id) {
-                <button
-                  type="button"
-                  class="dropdown-item location-item"
-                  [class.is-default]="branch.id === branchService.selectedBranch()?.id"
-                  (click)="selectBranch(branch)"
-                  [attr.data-testid]="'branch-option-' + branch.id"
-                >
-                  <span class="location-item-label">{{ branch.name }}</span>
-                  <span class="location-item-sub">{{ branch.city }}, {{ branch.state }}</span>
-                </button>
-              }
-
-              <p class="location-section-title px-lg py-sm">Dirección de entrega</p>
-              @if (auth.isAuthed()) {
-                @if (branchAddresses().length > 0) {
-                  @for (address of branchAddresses(); track address.id) {
-                    <button
-                      type="button"
-                      class="dropdown-item location-item"
-                      [class.is-default]="address.id === selectedAddress()?.id"
-                      (click)="selectAddress(address)"
-                      [attr.data-testid]="'location-option-' + address.id"
-                    >
-                      <span class="location-item-label">{{ address.label || address.city }}</span>
-                      <span class="location-item-sub"
-                        >{{ address.street }}, {{ address.city }}</span
-                      >
-                    </button>
-                  }
-                  <a
-                    routerLink="/account/addresses"
-                    class="dropdown-footer"
-                    (click)="locationOpen.set(false)"
-                    data-testid="location-manage"
-                  >
-                    Gestionar direcciones
-                  </a>
-                } @else {
-                  <div class="dropdown-empty">
-                    <p class="dropdown-empty-title">Sin direcciones guardadas</p>
-                    <p class="mb-md text-body-xs text-body">
-                      Agrega una dirección para elegir tu zona de entrega.
-                    </p>
-                    <a
-                      routerLink="/account/addresses"
-                      class="dropdown-cta"
-                      (click)="locationOpen.set(false)"
-                      data-testid="location-add"
-                    >
-                      Agregar dirección
-                    </a>
-                  </div>
-                }
-              } @else {
-                <div class="dropdown-empty">
-                  <p class="dropdown-empty-title">Elige tu ubicación de entrega</p>
-                  <p class="mb-md text-body-xs text-body">Ingresa para guardar tus direcciones.</p>
-                  <button
-                    type="button"
-                    class="dropdown-cta"
-                    (click)="openLogin()"
-                    data-testid="location-login"
-                  >
-                    Ingresar
-                  </button>
-                </div>
-              }
-            </div>
-          }
-        </div>
 
         <!-- Search -->
         <div class="header-search" #searchContainer>
@@ -486,75 +367,6 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
       height: 34px;
       width: auto;
       display: block;
-    }
-
-    /* ─── Location ────────────────────────────────── */
-    .header-location {
-      position: relative;
-      flex-shrink: 0;
-    }
-
-    .location-btn {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      padding: var(--spacing-xs) var(--spacing-sm);
-      background: transparent;
-      border: none;
-      border-radius: var(--radius-lg);
-      color: var(--color-on-primary);
-      cursor: pointer;
-      text-align: left;
-      transition: background-color 0.15s ease;
-    }
-
-    .location-btn:hover {
-      background-color: rgba(255, 255, 255, 0.12);
-    }
-
-    .location-text {
-      display: flex;
-      flex-direction: column;
-      line-height: 1.2;
-    }
-
-    .location-caption {
-      font-size: var(--text-body-xs);
-      color: rgba(255, 255, 255, 0.7);
-    }
-
-    .location-value {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--spacing-xxs);
-      font-size: var(--text-body-sm-strong);
-      font-weight: 600;
-    }
-
-    .location-dropdown {
-      min-width: 260px;
-    }
-
-    .location-item {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .location-section-title {
-      font-size: var(--text-body-xs);
-      font-weight: 600;
-      color: var(--color-mute);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .location-item-label {
-      font-weight: 600;
-    }
-
-    .location-item-sub {
-      font-size: var(--text-body-xs);
-      color: var(--color-body);
     }
 
     /* ─── Search ──────────────────────────────────── */
@@ -922,12 +734,6 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
     }
 
     /* ─── Responsive ──────────────────────────────── */
-    @media (max-width: 900px) {
-      .header-location {
-        display: none;
-      }
-    }
-
     @media (max-width: 480px) {
       .header-inner {
         gap: var(--spacing-sm);
@@ -946,9 +752,8 @@ export class Header implements OnInit {
   protected readonly favorites = inject(FavoriteService);
   protected readonly notifications = inject(NotificationsService);
   protected readonly settingsService = inject(SiteSettingsService);
-  protected readonly branchService = inject(BranchService);
   private readonly productService = inject(ProductService);
-  private readonly addressService = inject(AddressService);
+  private readonly branchService = inject(BranchService);
   private readonly router = inject(Router);
   private readonly elementRef = inject(ElementRef);
 
@@ -958,41 +763,26 @@ export class Header implements OnInit {
   protected readonly showDropdown = signal(false);
   protected readonly profileOpen = signal(false);
   protected readonly notifOpen = signal(false);
-  protected readonly locationOpen = signal(false);
-
-  protected readonly addresses = signal<Address[]>([]);
-  protected readonly selectedAddress = signal<Address | null>(null);
-
-  protected readonly branchAddresses = computed(() => {
-    const branchId = this.branchService.selectedBranch()?.id;
-    if (!branchId) return this.addresses();
-    return this.addresses().filter(
-      (address) => !address.branchId || address.branchId === branchId,
-    );
-  });
-
-  protected readonly locationLabel = computed(() => {
-    const selected = this.selectedAddress();
-    if (selected) return `${selected.city}, ${selected.country}`;
-    const branch = this.branchService.selectedBranch();
-    if (branch) return `${branch.city}, ${branch.country}`;
-    return 'Elegir ubicación';
-  });
 
   private readonly searchSubject = new Subject<string>();
 
+  private readonly branchReload = effect(() => {
+    const loaded = this.branchService.loaded();
+    this.branchService.selectedBranch();
+    if (!loaded) return;
+    untracked(() => {
+      if (this.search.trim()) this.searchSubject.next(this.search);
+    });
+  });
+
   ngOnInit(): void {
     this.settingsService.load();
-    this.branchService.load();
     this.cart.load();
     this.favorites.load();
+    this.branchService.load();
 
     if (this.auth.isAuthed()) {
       this.notifications.load();
-      this.addressService.getMine().subscribe((addresses) => {
-        this.addresses.set(addresses);
-        this.selectedAddress.set(addresses.find((a) => a.isDefault) ?? addresses[0] ?? null);
-      });
     }
 
     this.searchSubject
@@ -1039,23 +829,6 @@ export class Header implements OnInit {
     this.searchResults.set([]);
   }
 
-  protected selectAddress(address: Address): void {
-    this.selectedAddress.set(address);
-    this.locationOpen.set(false);
-  }
-
-  protected selectBranch(branch: Branch): void {
-    this.branchService.setSelected(branch);
-    const current = this.selectedAddress();
-    if (!current || (current.branchId && current.branchId !== branch.id)) {
-      const options = this.branchAddresses();
-      this.selectedAddress.set(
-        options.find((address) => address.isDefault) ?? options[0] ?? null,
-      );
-    }
-    this.locationOpen.set(false);
-  }
-
   protected toggleNotifications(): void {
     const open = !this.notifOpen();
     this.notifOpen.set(open);
@@ -1079,7 +852,6 @@ export class Header implements OnInit {
 
   protected openLogin(): void {
     this.profileOpen.set(false);
-    this.locationOpen.set(false);
     this.authModal.openLogin();
   }
 
@@ -1102,7 +874,6 @@ export class Header implements OnInit {
       this.showDropdown.set(false);
       this.profileOpen.set(false);
       this.notifOpen.set(false);
-      this.locationOpen.set(false);
     }
   }
 }

@@ -22,8 +22,8 @@ export class FlashSalesController {
   constructor(private readonly flashSalesService: FlashSalesService) {}
 
   @Get('active')
-  findActive() {
-    return this.flashSalesService.findActive();
+  findActive(@Query('branchId') branchId?: string) {
+    return this.flashSalesService.findActive(branchId);
   }
 }
 

@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Branch } from '../database/entities/branch.entity.js';
 import { DeliveryZone } from '../database/entities/delivery-zone.entity.js';
+import { Product } from '../database/entities/product.entity.js';
+import { BranchProductStock } from '../database/entities/branch-product-stock.entity.js';
 import { pointInZone } from '../common/utils/geo.util.js';
 import {
   CreateBranchDto,
@@ -23,6 +25,10 @@ export class BranchesService {
     private readonly branchRepository: Repository<Branch>,
     @InjectRepository(DeliveryZone)
     private readonly zoneRepository: Repository<DeliveryZone>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
+    @InjectRepository(BranchProductStock)
+    private readonly branchStockRepository: Repository<BranchProductStock>,
   ) {}
 
   findAllPublic(): Promise<Branch[]> {
@@ -152,7 +158,36 @@ export class BranchesService {
       await this.clearOtherDefaults(saved.id);
     }
 
+    await this.ensureBranchStockRows(saved.id);
+
     return saved;
+  }
+
+  private async ensureBranchStockRows(branchId: string): Promise<void> {
+    const products = await this.productRepository.find();
+    if (products.length === 0) return;
+
+    const existingRows = await this.branchStockRepository.find({
+      where: { branchId },
+    });
+    const existingProductIds = new Set(
+      existingRows.map((row) => row.productId),
+    );
+
+    const missing = products.filter(
+      (product) => !existingProductIds.has(product.id),
+    );
+    if (missing.length === 0) return;
+
+    await this.branchStockRepository.save(
+      missing.map((product) =>
+        this.branchStockRepository.create({
+          branchId,
+          productId: product.id,
+          stock: 0,
+        }),
+      ),
+    );
   }
 
   async update(id: string, dto: UpdateBranchDto): Promise<Branch> {
@@ -167,6 +202,7 @@ export class BranchesService {
   async remove(id: string): Promise<void> {
     await this.findOne(id);
     await this.zoneRepository.delete({ branchId: id });
+    await this.branchStockRepository.delete({ branchId: id });
     await this.branchRepository.delete({ id });
   }
 

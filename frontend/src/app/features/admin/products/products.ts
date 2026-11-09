@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AdminService, AdminProduct, AdminCategory } from '../../../core/services/admin.service';
 import { Tag } from '../../../core/services/product.service';
+import { Branch } from '../../../core/services/branch.service';
 import { ToastService } from '../../../core/services/toast.service';
 import {
   StockSubscription,
@@ -13,6 +14,7 @@ import {
 import { ModalComponent } from '../../../shared/ui/modal';
 import { ImageCropperModalComponent } from '../../../shared/ui/image-cropper-modal';
 import { ConfirmDialogComponent } from '../../../shared/ui/confirm-dialog';
+import { SelectComponent, SelectOption } from '../../../shared/ui/select';
 
 interface ProductForm {
   name: string;
@@ -20,7 +22,7 @@ interface ProductForm {
   sku: string;
   price: number;
   costPrice: number | null;
-  stock: number;
+  branchStocks: { branchId: string; stock: number; isActive: boolean }[];
   categoryId: string;
   tagIds: string[];
   description: string;
@@ -39,7 +41,7 @@ const EMPTY_FORM: ProductForm = {
   sku: '',
   price: 0,
   costPrice: null,
-  stock: 0,
+  branchStocks: [],
   categoryId: '',
   tagIds: [],
   description: '',
@@ -66,6 +68,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
     ModalComponent,
     ImageCropperModalComponent,
     ConfirmDialogComponent,
+    SelectComponent,
   ],
   styles: `
     .image-gallery-grid {
@@ -302,6 +305,48 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
       opacity: 0.4;
       cursor: not-allowed;
     }
+
+    .branch-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-xs);
+      border-bottom: 1px solid var(--color-surface-pressed);
+      padding-bottom: var(--spacing-sm);
+    }
+
+    .branch-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-xxs);
+      max-width: 180px;
+      padding: var(--spacing-xs) var(--spacing-md);
+      border: 1px solid transparent;
+      border-radius: var(--radius-pill);
+      background-color: var(--color-canvas-soft);
+      color: var(--color-body);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .branch-tab:hover {
+      background-color: var(--color-surface-pressed);
+    }
+
+    .branch-tab.active {
+      background-color: var(--color-primary);
+      color: var(--color-on-primary);
+      border-color: var(--color-primary);
+    }
+
+    .branch-panel {
+      margin-top: var(--spacing-md);
+      padding: var(--spacing-lg);
+      border: 1px solid var(--color-surface-pressed);
+      border-radius: var(--radius-lg);
+      background-color: var(--color-canvas-softer);
+    }
   `,
   template: `
     <div data-testid="admin-products">
@@ -335,49 +380,46 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
             data-testid="product-search"
           />
         </div>
-        <select
-          [(ngModel)]="filterCategory"
-          (ngModelChange)="onFilterChange()"
-          class="filter-input"
-          data-testid="category-filter"
-        >
-          <option value="">Todas las categorías</option>
-          @for (cat of allCategories(); track cat.id) {
-            <option [value]="cat.id">{{ cat.name }}</option>
-          }
-        </select>
-        <select
-          [(ngModel)]="filterTag"
-          (ngModelChange)="onFilterChange()"
-          class="filter-input"
-          data-testid="tag-filter"
-        >
-          <option value="">Todos los tags</option>
-          @for (tag of allTags(); track tag.id) {
-            <option [value]="tag.id">{{ tag.name }}</option>
-          }
-        </select>
-        <select
-          [(ngModel)]="filterActive"
-          (ngModelChange)="onFilterChange()"
-          class="filter-input"
-          data-testid="active-filter"
-        >
-          <option value="">Todos los estados</option>
-          <option value="true">Activo</option>
-          <option value="false">Inactivo</option>
-        </select>
-        <select
-          [(ngModel)]="filterStock"
-          (ngModelChange)="onFilterChange()"
-          class="filter-input"
-          data-testid="stock-filter"
-        >
-          <option value="">Todo el stock</option>
-          <option value="in">En stock (&gt;5)</option>
-          <option value="low">Bajo stock (1-5)</option>
-          <option value="out">Agotados (≤0)</option>
-        </select>
+        <app-select
+          variant="filter"
+          [options]="branchOptions()"
+          [ngModel]="filterBranch"
+          (ngModelChange)="filterBranch = $event; onFilterChange()"
+          placeholder="Todas las sucursales"
+          testId="branch-filter"
+        />
+        <app-select
+          variant="filter"
+          [options]="categoryOptions()"
+          [ngModel]="filterCategory"
+          (ngModelChange)="filterCategory = $event; onFilterChange()"
+          placeholder="Todas las categorías"
+          testId="category-filter"
+        />
+        <app-select
+          variant="filter"
+          [options]="tagOptions()"
+          [ngModel]="filterTag"
+          (ngModelChange)="filterTag = $event; onFilterChange()"
+          placeholder="Todos los tags"
+          testId="tag-filter"
+        />
+        <app-select
+          variant="filter"
+          [options]="activeOptions"
+          [ngModel]="filterActive"
+          (ngModelChange)="filterActive = $event; onFilterChange()"
+          placeholder="Todos los estados"
+          testId="active-filter"
+        />
+        <app-select
+          variant="filter"
+          [options]="stockOptions"
+          [ngModel]="filterStock"
+          (ngModelChange)="filterStock = $event; onFilterChange()"
+          placeholder="Todo el stock"
+          testId="stock-filter"
+        />
       </div>
 
       @if (loading()) {
@@ -490,13 +532,14 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
                   <span
                     class="text-body-sm"
                     [class]="
-                      product.stock <= 5
+                      stockValue(product) <= 5
                         ? 'text-red-600 font-bold'
-                        : product.stock <= 15
+                        : stockValue(product) <= 15
                           ? 'text-amber-600'
                           : 'text-body'
                     "
-                    >{{ product.stock }}</span
+                    [attr.data-testid]="'product-stock-' + product.id"
+                    >{{ stockValue(product) }}</span
                   >
                 </div>
                 <div class="col-span-1 text-body-sm text-body">
@@ -699,14 +742,14 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
                   <p
                     class="text-body-sm"
                     [class]="
-                      product.stock <= 5
+                      stockValue(product) <= 5
                         ? 'text-red-600 font-bold'
-                        : product.stock <= 15
+                        : stockValue(product) <= 15
                           ? 'text-amber-600'
                           : 'text-body'
                     "
                   >
-                    {{ product.stock }}
+                    {{ stockValue(product) }}
                   </p>
                 </div>
                 @if (product.costPrice != null && product.costPrice > 0) {
@@ -1013,35 +1056,87 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
               </div>
             </div>
           </div>
-          <div>
-            <label class="form-label" for="pf-stock">Stock</label>
-            <input
-              id="pf-stock"
-              type="number"
-              min="0"
-              [ngModel]="form().stock"
-              (ngModelChange)="patch({ stock: $event })"
-              class="form-input"
-              data-testid="form-stock"
-            />
+          <div class="col-span-2">
+            <div class="flex items-center justify-between mb-sm">
+              <span class="form-label">Stock por sucursal</span>
+              <span class="text-body-sm text-body" data-testid="form-stock-total"
+                >Total: {{ formTotalStock() }}</span
+              >
+            </div>
+            @if (allBranches().length > 0) {
+              <div class="branch-tabs" role="tablist" data-testid="form-branch-tabs">
+                @for (branch of allBranches(); track branch.id) {
+                  <button
+                    type="button"
+                    role="tab"
+                    class="branch-tab"
+                    [class.active]="activeBranch()?.id === branch.id"
+                    [attr.aria-selected]="activeBranch()?.id === branch.id"
+                    [attr.data-testid]="'form-branch-tab-' + branch.id"
+                    (click)="formBranchTab.set(branch.id)"
+                  >
+                    <span class="truncate">{{ branch.name }}</span>
+                    @if (!branchStockFor(branch.id).isActive) {
+                      <span class="text-body-xs text-mute">(inactiva)</span>
+                    }
+                  </button>
+                }
+              </div>
+              @if (activeBranch(); as branch) {
+                <div class="branch-panel" data-testid="form-branch-panel">
+                  <div class="flex flex-wrap items-end gap-lg">
+                    <div class="flex-1 min-w-40">
+                      <label class="form-label" [attr.for]="'pf-branch-stock-' + branch.id"
+                        >Stock en {{ branch.name }}</label
+                      >
+                      <input
+                        [id]="'pf-branch-stock-' + branch.id"
+                        type="number"
+                        min="0"
+                        [ngModel]="activeBranchStock()?.stock ?? 0"
+                        (ngModelChange)="setBranchStock(branch.id, $event)"
+                        class="form-input"
+                        [attr.data-testid]="'form-branch-stock-' + branch.id"
+                      />
+                    </div>
+                    <label class="flex items-center gap-md text-body-md cursor-pointer pb-sm">
+                      <span class="toggle">
+                        <input
+                          type="checkbox"
+                          [checked]="activeBranchStock()?.isActive ?? true"
+                          (change)="
+                            setBranchActive(branch.id, !(activeBranchStock()?.isActive ?? true))
+                          "
+                          [attr.data-testid]="'form-branch-active-' + branch.id"
+                        />
+                        <span class="toggle-slider"></span>
+                      </span>
+                      Disponible en esta sucursal
+                    </label>
+                  </div>
+                  <p class="form-hint mt-sm">
+                    Si está desactivado, el producto no se muestra en esta sucursal aunque tenga
+                    stock.
+                  </p>
+                </div>
+              }
+            } @else {
+              <p class="form-hint">No hay sucursales disponibles.</p>
+            }
           </div>
-          <div>
+          <div class="col-span-2">
             <label class="form-label" for="pf-category"
               >Categoría <span class="text-red-500">*</span></label
             >
-            <select
-              id="pf-category"
+            <app-select
+              variant="form"
+              controlId="pf-category"
+              [options]="formCategoryOptions()"
               [ngModel]="form().categoryId"
               (ngModelChange)="patch({ categoryId: $event })"
-              class="form-input"
-              required
-              data-testid="form-category"
-            >
-              <option value="">Seleccionar...</option>
-              @for (cat of allCategories(); track cat.id) {
-                <option [value]="cat.id">{{ cat.name }}</option>
-              }
-            </select>
+              placeholder="Seleccionar..."
+              testId="form-category"
+            />
           </div>
           <div>
             <label class="form-label" for="pf-tags">Tags</label>
@@ -1074,17 +1169,16 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
                 }
               }
             </div>
-            <select
-              id="pf-tags"
-              (change)="addTag($event)"
-              class="form-input"
-              data-testid="form-tags"
-            >
-              <option value="">Agregar tag...</option>
-              @for (tag of availableTags(); track tag.id) {
-                <option [value]="tag.id">{{ tag.name }}</option>
-              }
-            </select>
+            <app-select
+              variant="form"
+              controlId="pf-tags"
+              [options]="availableTagOptions()"
+              [ngModel]="''"
+              [resetAfterSelect]="true"
+              (ngModelChange)="addTagById($event)"
+              placeholder="Agregar tag..."
+              testId="form-tags"
+            />
           </div>
           <div class="flex items-end pb-md">
             <label class="flex items-center gap-md text-body-md cursor-pointer">
@@ -1322,7 +1416,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
                 </dd>
               </div>
               <div>
-                <dt class="detail-label">Stock</dt>
+                <dt class="detail-label">Stock total</dt>
                 <dd class="detail-value" data-testid="detail-stock">{{ p.stock }}</dd>
               </div>
               <div>
@@ -1334,6 +1428,28 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
               <div>
                 <dt class="detail-label">ID</dt>
                 <dd class="detail-value font-mono truncate" data-testid="detail-id">{{ p.id }}</dd>
+              </div>
+              <div class="col-span-2">
+                <dt class="detail-label">Stock por sucursal</dt>
+                <dd class="detail-value" data-testid="detail-branch-stocks">
+                  @if ((p.branchStocks?.length ?? 0) > 0) {
+                    <div class="flex flex-col gap-xxs">
+                      @for (entry of p.branchStocks; track entry.branchId) {
+                        <div class="flex items-center justify-between gap-md">
+                          <span class="truncate">
+                            {{ branchName(entry.branchId) }}
+                            @if (!entry.isActive) {
+                              <span class="text-body-xs text-mute">(inactiva)</span>
+                            }
+                          </span>
+                          <span class="font-medium">{{ entry.stock }}</span>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <span class="text-mute">Sin datos</span>
+                  }
+                </dd>
               </div>
             </dl>
 
@@ -1417,6 +1533,7 @@ export class AdminProducts implements OnInit {
   protected readonly products = signal<AdminProduct[]>([]);
   protected readonly allCategories = signal<AdminCategory[]>([]);
   protected readonly allTags = signal<Tag[]>([]);
+  protected readonly allBranches = signal<Branch[]>([]);
   protected readonly loading = signal(true);
   protected readonly page = signal(1);
   protected readonly total = signal(0);
@@ -1424,6 +1541,7 @@ export class AdminProducts implements OnInit {
 
   protected readonly form = signal<ProductForm>({ ...EMPTY_FORM });
   protected readonly formOpen = signal(false);
+  protected readonly formBranchTab = signal<string | null>(null);
   protected readonly formError = signal('');
   protected readonly editingId = signal<string | null>(null);
   protected readonly isSaving = signal(false);
@@ -1445,9 +1563,76 @@ export class AdminProducts implements OnInit {
     return this.allTags().filter((t) => !selected.includes(t.id));
   });
 
+  protected readonly branchOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'Todas las sucursales' },
+    ...this.allBranches().map((branch) => ({
+      value: branch.id,
+      label: branch.name,
+      hint: branch.isActive ? undefined : 'Inactiva',
+    })),
+  ]);
+
+  protected readonly categoryOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'Todas las categorías' },
+    ...this.allCategories().map((cat) => ({ value: cat.id, label: cat.name })),
+  ]);
+
+  protected readonly tagOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'Todos los tags' },
+    ...this.allTags().map((tag) => ({ value: tag.id, label: tag.name })),
+  ]);
+
+  protected readonly formCategoryOptions = computed<SelectOption[]>(() =>
+    this.allCategories().map((cat) => ({ value: cat.id, label: cat.name })),
+  );
+
+  protected readonly availableTagOptions = computed<SelectOption[]>(() =>
+    this.availableTags().map((tag) => ({ value: tag.id, label: tag.name })),
+  );
+
+  protected readonly activeOptions: SelectOption[] = [
+    { value: '', label: 'Todos los estados' },
+    { value: 'true', label: 'Activo' },
+    { value: 'false', label: 'Inactivo' },
+  ];
+
+  protected readonly stockOptions: SelectOption[] = [
+    { value: '', label: 'Todo el stock' },
+    { value: 'in', label: 'En stock (>5)' },
+    { value: 'low', label: 'Bajo stock (1-5)' },
+    { value: 'out', label: 'Agotados (≤0)' },
+  ];
+
+  protected readonly formTotalStock = computed(() =>
+    this.form().branchStocks.reduce(
+      (total, item) => total + (Number(item.stock) || 0),
+      0,
+    ),
+  );
+
+  protected readonly activeBranch = computed(() => {
+    const branches = this.allBranches();
+    if (branches.length === 0) return null;
+    return (
+      branches.find((branch) => branch.id === this.formBranchTab()) ??
+      branches[0]
+    );
+  });
+
+  protected readonly activeBranchStock = computed(() => {
+    const branch = this.activeBranch();
+    if (!branch) return null;
+    return (
+      this.form().branchStocks.find(
+        (entry) => entry.branchId === branch.id,
+      ) ?? { branchId: branch.id, stock: 0, isActive: true }
+    );
+  });
+
   protected sortField = '';
   protected sortOrder: 'ASC' | 'DESC' = 'DESC';
   protected searchTerm = '';
+  protected filterBranch = '';
   protected filterCategory = '';
   protected filterTag = '';
   protected filterActive = '';
@@ -1462,19 +1647,68 @@ export class AdminProducts implements OnInit {
     this.loadProducts();
     this.loadCategories();
     this.loadTags();
+    this.loadBranches();
   }
 
   protected patch(values: Partial<ProductForm>): void {
     this.form.update((f) => ({ ...f, ...values }));
   }
 
-  protected addTag(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const tagId = select.value;
+  protected branchStockValue(branchId: string): number {
+    return this.branchStockFor(branchId).stock;
+  }
+
+  protected branchStockFor(branchId: string): {
+    branchId: string;
+    stock: number;
+    isActive: boolean;
+  } {
+    return (
+      this.form().branchStocks.find((entry) => entry.branchId === branchId) ?? {
+        branchId,
+        stock: 0,
+        isActive: true,
+      }
+    );
+  }
+
+  protected setBranchStock(branchId: string, value: number | string): void {
+    const parsed = Number(value);
+    const stock = Number.isFinite(parsed) ? Math.max(0, Math.trunc(parsed)) : 0;
+    this.form.update((f) => {
+      const exists = f.branchStocks.some((entry) => entry.branchId === branchId);
+      const branchStocks = exists
+        ? f.branchStocks.map((entry) =>
+            entry.branchId === branchId ? { ...entry, stock } : entry,
+          )
+        : [...f.branchStocks, { branchId, stock, isActive: true }];
+      return { ...f, branchStocks };
+    });
+  }
+
+  protected setBranchActive(branchId: string, isActive: boolean): void {
+    this.form.update((f) => {
+      const exists = f.branchStocks.some((entry) => entry.branchId === branchId);
+      const branchStocks = exists
+        ? f.branchStocks.map((entry) =>
+            entry.branchId === branchId ? { ...entry, isActive } : entry,
+          )
+        : [...f.branchStocks, { branchId, stock: 0, isActive }];
+      return { ...f, branchStocks };
+    });
+  }
+
+  protected branchName(branchId: string): string {
+    return (
+      this.allBranches().find((branch) => branch.id === branchId)?.name ??
+      'Sucursal'
+    );
+  }
+
+  protected addTagById(tagId: string): void {
     if (tagId && !this.form().tagIds.includes(tagId)) {
       this.patch({ tagIds: [...this.form().tagIds, tagId] });
     }
-    select.value = '';
   }
 
   protected removeTag(tagId: string): void {
@@ -1544,6 +1778,12 @@ export class AdminProducts implements OnInit {
     return product.images?.[0] ?? '';
   }
 
+  protected stockValue(product: AdminProduct): number {
+    return this.filterBranch
+      ? (product.branchStock ?? 0)
+      : product.stock;
+  }
+
   protected onSearch(): void {
     clearTimeout(this.searchTimeout);
     this.searchTimeout = setTimeout(() => {
@@ -1580,7 +1820,15 @@ export class AdminProducts implements OnInit {
   }
 
   protected openCreate(): void {
-    this.form.set({ ...EMPTY_FORM });
+    this.form.set({
+      ...EMPTY_FORM,
+      branchStocks: this.allBranches().map((branch) => ({
+        branchId: branch.id,
+        stock: 0,
+        isActive: true,
+      })),
+    });
+    this.formBranchTab.set(this.allBranches()[0]?.id ?? null);
     this.editingId.set(null);
     this.formError.set('');
     this.formOpen.set(true);
@@ -1592,13 +1840,20 @@ export class AdminProducts implements OnInit {
     const featuredIndex = product.featuredImage
       ? Math.max(0, images.indexOf(product.featuredImage))
       : 0;
+    const stocksByBranch = new Map(
+      (product.branchStocks ?? []).map((entry) => [entry.branchId, entry]),
+    );
     this.form.set({
       name: product.name,
       slug: product.slug,
       sku: product.sku,
       price: Number(product.price),
       costPrice: product.costPrice != null ? Number(product.costPrice) : null,
-      stock: product.stock,
+      branchStocks: this.allBranches().map((branch) => ({
+        branchId: branch.id,
+        stock: stocksByBranch.get(branch.id)?.stock ?? 0,
+        isActive: stocksByBranch.get(branch.id)?.isActive ?? true,
+      })),
       categoryId: product.categoryId,
       tagIds: product.tags?.map((t) => t.id) ?? [],
       description: product.description ?? '',
@@ -1611,6 +1866,7 @@ export class AdminProducts implements OnInit {
       discountPercent: product.discountPercent != null ? Number(product.discountPercent) : null,
       discountPrice: product.discountPrice != null ? Number(product.discountPrice) : null,
     });
+    this.formBranchTab.set(this.allBranches()[0]?.id ?? null);
     this.formError.set('');
     this.formOpen.set(true);
   }
@@ -1634,6 +1890,7 @@ export class AdminProducts implements OnInit {
     this.formOpen.set(false);
     this.editingId.set(null);
     this.form.set({ ...EMPTY_FORM });
+    this.formBranchTab.set(null);
     this.formError.set('');
     this.imageError.set('');
     this.openDropdown.set(null);
@@ -1741,7 +1998,11 @@ export class AdminProducts implements OnInit {
       sku: data.sku.trim(),
       price: Number(data.price),
       costPrice: data.costPrice,
-      stock: Number(data.stock),
+      branchStocks: data.branchStocks.map((entry) => ({
+        branchId: entry.branchId,
+        stock: Math.max(0, Math.trunc(Number(entry.stock) || 0)),
+        isActive: entry.isActive !== false,
+      })),
       categoryId: data.categoryId,
       tagIds: data.tagIds,
       description: data.description,
@@ -1821,6 +2082,7 @@ export class AdminProducts implements OnInit {
         this.sortField,
         this.sortOrder,
         this.filterTag,
+        this.filterBranch,
       )
       .subscribe({
         next: (res) => {
@@ -1842,6 +2104,28 @@ export class AdminProducts implements OnInit {
   private loadTags(): void {
     this.adminService.getTags(1, 100).subscribe({
       next: (res) => this.allTags.set(res.data),
+    });
+  }
+
+  private loadBranches(): void {
+    this.adminService.getBranches().subscribe({
+      next: (branches) => {
+        this.allBranches.set(branches);
+        if (this.formOpen()) {
+          this.form.update((f) => ({
+            ...f,
+            branchStocks: branches.map((branch) => ({
+              branchId: branch.id,
+              stock:
+                f.branchStocks.find((entry) => entry.branchId === branch.id)
+                  ?.stock ?? 0,
+              isActive:
+                f.branchStocks.find((entry) => entry.branchId === branch.id)
+                  ?.isActive ?? true,
+            })),
+          }));
+        }
+      },
     });
   }
 }

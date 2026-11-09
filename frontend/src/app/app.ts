@@ -6,6 +6,7 @@ import { Header } from './shared/layout/header';
 import { Navbar } from './shared/layout/navbar';
 import { Footer } from './shared/layout/footer';
 import { BottomNav } from './shared/layout/bottom-nav';
+import { BranchSwitcher } from './shared/layout/branch-switcher';
 import { CartDrawer } from './shared/ui/cart-drawer';
 import { AuthModalComponent } from './shared/ui/auth-modal';
 import { ToastComponent } from './shared/ui/toast';
@@ -14,7 +15,7 @@ import { NotificationsService } from './core/services/notifications.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TopBanner, Header, Navbar, Footer, BottomNav, CartDrawer, AuthModalComponent, ToastComponent],
+  imports: [RouterOutlet, TopBanner, Header, Navbar, Footer, BottomNav, BranchSwitcher, CartDrawer, AuthModalComponent, ToastComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

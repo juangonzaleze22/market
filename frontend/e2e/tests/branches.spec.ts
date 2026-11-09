@@ -2,15 +2,17 @@ import { test, expect } from '@playwright/test';
 import { loginViaModal } from '../helpers/login';
 
 test.describe('Sucursales', () => {
-  test('el navbar permite elegir una sucursal', async ({ page }) => {
+  test('el botón flotante permite elegir una sucursal', async ({ page }) => {
     await page.goto('/');
-    await page.click('[data-testid="location-button"]');
-    const dropdown = page.locator('[data-testid="location-dropdown"]');
-    await expect(dropdown).toBeVisible({ timeout: 10000 });
-    await expect(dropdown).toContainText('Sucursal');
+    await page.click('[data-testid="branch-switcher-button"]');
+    const modal = page.locator('[data-testid="branch-switcher"]');
+    await expect(modal).toBeVisible({ timeout: 10000 });
     await expect(
-      dropdown.locator('[data-testid^="branch-option-"]').first(),
+      modal.locator('[data-testid^="branch-option-"]').first(),
     ).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.locator('[data-testid="branch-use-location"]'),
+    ).toBeVisible();
   });
 
   test('el admin puede crear y eliminar una sucursal', async ({ page }) => {

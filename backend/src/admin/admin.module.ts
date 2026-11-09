@@ -4,6 +4,8 @@ import { AdminController } from './admin.controller.js';
 import { AdminService } from './admin.service.js';
 import { UploadController } from './upload.controller.js';
 import {
+  Branch,
+  BranchProductStock,
   Category,
   Expense,
   Order,
@@ -17,7 +19,7 @@ import { NotificationsModule } from '../notifications/notifications.module.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Product, Category, Order, OrderItem, Tag, Expense]),
+    TypeOrmModule.forFeature([User, Product, Branch, BranchProductStock, Category, Order, OrderItem, Tag, Expense]),
     ChatModule,
     NotificationsModule,
   ],

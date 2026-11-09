@@ -127,6 +127,30 @@ test.describe('Productos - Modal y acciones', () => {
     await expect(page.locator('[data-testid="form-image-choose"]')).toBeVisible();
   });
 
+  test('formulario de creacion permite asignar stock por sucursal', async ({ page }) => {
+    await page.goto('/admin/products');
+    await expect(page.locator('[data-testid="products-table"]')).toBeVisible({ timeout: 10000 });
+    await page.click('[data-testid="add-product-btn"]');
+
+    const modal = page.locator('[data-testid="product-form-modal"]');
+    await expect(modal).toBeVisible({ timeout: 5000 });
+
+    await expect(page.locator('[data-testid="form-branch-tabs"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="form-branch-panel"]')).toBeVisible();
+
+    const firstBranchStock = page.locator('[data-testid^="form-branch-stock-"]').first();
+    await expect(firstBranchStock).toBeVisible();
+    await expect(page.locator('[data-testid="form-stock-total"]')).toContainText('Total: 0');
+
+    await firstBranchStock.fill('7');
+    await expect(page.locator('[data-testid="form-stock-total"]')).toContainText('Total: 7');
+
+    const firstBranchActive = page.locator('[data-testid^="form-branch-active-"]').first();
+    await expect(firstBranchActive).toBeChecked();
+    await firstBranchActive.uncheck();
+    await expect(firstBranchActive).not.toBeChecked();
+  });
+
   test('modal de creacion se cierra con cancelar y con la X', async ({ page }) => {
     await page.goto('/admin/products');
     await expect(page.locator('[data-testid="products-table"]')).toBeVisible({ timeout: 10000 });
@@ -195,6 +219,55 @@ test.describe('Productos - Modal y acciones', () => {
       'No se encontraron productos',
       { timeout: 5000 },
     );
+  });
+
+  test('filtros son dropdowns y permiten filtrar por sucursal', async ({ page }) => {
+    await page.goto('/admin/products');
+    await expect(page.locator('[data-testid="products-table"]')).toBeVisible({ timeout: 10000 });
+
+    await page.click('[data-testid="category-filter-trigger"]');
+    await expect(page.locator('[data-testid="category-filter"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid^="category-filter-option-"]').first(),
+    ).toBeVisible();
+    await page.locator('[data-testid^="category-filter-option-"]').first().click();
+    await expect(page.locator('[data-testid="products-table"]')).toBeVisible();
+
+    const branchTrigger = page.locator('[data-testid="branch-filter-trigger"]');
+    await expect(branchTrigger).toBeVisible();
+    await branchTrigger.click();
+    await expect(page.locator('[data-testid="branch-filter"]')).toBeVisible();
+
+    const branchOptions = page.locator('[data-testid^="branch-filter-option-"]');
+    if ((await branchOptions.count()) > 1) {
+      await branchOptions.nth(1).click();
+      await expect(branchTrigger).not.toContainText('Todas las sucursales');
+      await expect(page.locator('[data-testid^="product-stock-"]').first()).toBeVisible({
+        timeout: 5000,
+      });
+    }
+  });
+
+  test('el modal de producto usa dropdowns de categoria y tags', async ({ page }) => {
+    await page.goto('/admin/products');
+    await expect(page.locator('[data-testid="products-table"]')).toBeVisible({ timeout: 10000 });
+    await page.click('[data-testid="add-product-btn"]');
+    await expect(page.locator('[data-testid="product-form-modal"]')).toBeVisible({ timeout: 5000 });
+
+    await page.click('[data-testid="form-category-trigger"]');
+    await expect(page.locator('[data-testid="form-category"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid^="form-category-option-"]').first(),
+    ).toBeVisible();
+    await page.locator('[data-testid^="form-category-option-"]').first().click();
+
+    await page.click('[data-testid="form-tags-trigger"]');
+    await expect(page.locator('[data-testid="form-tags"]')).toBeVisible();
+    const tagOption = page.locator('[data-testid^="form-tags-option-"]').first();
+    await expect(tagOption).toBeVisible();
+    await tagOption.click();
+    await expect(page.locator('[data-testid="remove-tag"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="form-tags-trigger"]')).toContainText('Agregar tag...');
   });
 });
 

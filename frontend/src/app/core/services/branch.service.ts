@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, of, tap } from 'rxjs';
 import { ApiService } from './api.service';
+import { haversineKm } from '../utils/geo.util';
 
 export interface ZonePoint {
   lat: number;
@@ -56,7 +57,10 @@ export class BranchService {
   readonly branches = signal<Branch[]>([]);
   readonly selectedBranch = signal<Branch | null>(null);
   readonly loaded = signal(false);
+  readonly locating = signal(false);
+  readonly locationError = signal('');
   private zonesCache = new Map<string, DeliveryZone[]>();
+  private userChoseBranch = false;
 
   load(force = false): void {
     if (this.loaded() && !force) return;
@@ -73,10 +77,17 @@ export class BranchService {
         const fallback =
           branches.find((branch) => branch.isDefault) ?? branches[0] ?? null;
         this.selectedBranch.set(stored ?? fallback);
+
+        if (!stored) {
+          void this.detectNearest();
+        }
       });
   }
 
-  setSelected(branch: Branch | null): void {
+  setSelected(branch: Branch | null, markAsUserChoice = true): void {
+    if (markAsUserChoice) {
+      this.userChoseBranch = true;
+    }
     this.selectedBranch.set(branch);
     if (branch) {
       try {
@@ -109,6 +120,69 @@ export class BranchService {
       );
   }
 
+  async detectNearest(force = false): Promise<Branch | null> {
+    if (!this.branches().length || typeof navigator === 'undefined') {
+      return null;
+    }
+    if (!navigator.geolocation) {
+      this.locationError.set('Este dispositivo no permite obtener la ubicación.');
+      return null;
+    }
+
+    this.locating.set(true);
+    this.locationError.set('');
+
+    try {
+      const position = await this.getCurrentPosition();
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      const resolved = await new Promise<BranchResolveResult>((resolve) => {
+        this.resolve(lat, lng).subscribe((result) => resolve(result));
+      });
+
+      let branch: Branch | null = resolved.branch ?? null;
+
+      if (!branch) {
+        branch = this.nearestBranch(lat, lng);
+      }
+
+      if (branch && (force || !this.userChoseBranch)) {
+        this.setSelected(branch, force);
+      }
+
+      return branch;
+    } catch {
+      this.locationError.set(
+        'No pudimos obtener tu ubicación. Elegí una sucursal manualmente.',
+      );
+      return null;
+    } finally {
+      this.locating.set(false);
+    }
+  }
+
+  nearestBranch(lat: number, lng: number): Branch | null {
+    const branches = this.branches().filter((branch) => branch.isActive);
+    if (branches.length === 0) return null;
+
+    let closest: Branch | null = null;
+    let closestDistance = Number.POSITIVE_INFINITY;
+
+    for (const branch of branches) {
+      const distance = haversineKm(
+        { lat, lng },
+        { lat: Number(branch.latitude), lng: Number(branch.longitude) },
+      );
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closest = branch;
+      }
+    }
+
+    return closest;
+  }
+
   resolve(lat: number, lng: number): Observable<BranchResolveResult> {
     return this.http
       .get<BranchResolveResult>(
@@ -127,5 +201,15 @@ export class BranchService {
     } catch {
       return null;
     }
+  }
+
+  private getCurrentPosition(): Promise<GeolocationPosition> {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: false,
+        timeout: 8000,
+        maximumAge: 5 * 60 * 1000,
+      });
+    });
   }
 }

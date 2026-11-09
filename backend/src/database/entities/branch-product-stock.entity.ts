@@ -21,6 +21,9 @@ export class BranchProductStock {
   @Column({ type: 'int', default: 0 })
   stock: number;
 
+  @Column({ default: true })
+  isActive: boolean;
+
   @Column({ type: 'int', default: 5 })
   lowStockThreshold: number;
 

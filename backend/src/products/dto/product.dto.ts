@@ -5,7 +5,24 @@ import {
   IsBoolean,
   IsUUID,
   IsArray,
+  ValidateNested,
+  Min,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class BranchStockDto {
+  @IsUUID()
+  branchId: string;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  stock?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+}
 
 export class CreateProductDto {
   @IsString()
@@ -28,6 +45,12 @@ export class CreateProductDto {
   @IsNumber()
   @IsOptional()
   stock?: number;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BranchStockDto)
+  @IsOptional()
+  branchStocks?: BranchStockDto[];
 
   @IsString()
   sku: string;
@@ -89,6 +112,12 @@ export class UpdateProductDto {
   @IsNumber()
   @IsOptional()
   stock?: number;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BranchStockDto)
+  @IsOptional()
+  branchStocks?: BranchStockDto[];
 
   @IsString()
   @IsOptional()
