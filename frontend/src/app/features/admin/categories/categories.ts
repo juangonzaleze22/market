@@ -71,25 +71,25 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
           class="bg-canvas rounded-xl border border-surface-pressed overflow-hidden max-md:hidden"
         >
           <div
-            class="grid grid-cols-12 gap-4 bg-accent text-white rounded-t-xl px-lg py-3 font-semibold text-body-sm"
+            class="grid grid-cols-12 gap-4 bg-accent text-on-accent rounded-t-xl px-lg py-3 font-semibold text-body-sm"
             data-testid="categories-table-header"
           >
             <div
-              class="col-span-4 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-4 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('name')"
               data-testid="sort-name"
             >
               Categoría{{ sortIcon('name') }}
             </div>
             <div
-              class="col-span-2 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-2 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('slug')"
               data-testid="sort-slug"
             >
               Slug{{ sortIcon('slug') }}
             </div>
             <div
-              class="col-span-4 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-4 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('description')"
               data-testid="sort-description"
             >

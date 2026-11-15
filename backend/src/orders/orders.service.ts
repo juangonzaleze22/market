@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { randomInt } from 'node:crypto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from '../database/entities/order.entity.js';
@@ -183,13 +184,6 @@ export class OrdersService {
       throw new NotFoundException('Dirección no encontrada');
     }
 
-    const cartItems = await this.cartRepository.find({
-      where: { userId },
-    });
-    if (cartItems.length === 0) {
-      throw new BadRequestException('El carrito está vacío');
-    }
-
     const paymentMethod = (dto.paymentMethod ?? '').trim().toLowerCase();
     const requiresPaymentProof =
       paymentMethod.length > 0 &&
@@ -210,11 +204,24 @@ export class OrdersService {
 
     const location = await this.resolveOrderLocation(dto.branchId, address);
 
+    const cartItems = await this.cartRepository.find({
+      where: location.branch
+        ? { userId, branchId: location.branch.id }
+        : { userId },
+    });
+    if (cartItems.length === 0) {
+      throw new BadRequestException(
+        location.branch
+          ? 'El carrito de esta sucursal está vacío'
+          : 'El carrito está vacío',
+      );
+    }
+
     const flashSaleMap = await this.flashSalesService.findActiveForProducts();
 
     const order = await this.dataSource.transaction(async (manager) => {
       const orderData = manager.create(Order, {
-        orderNumber: `ORD-${Date.now()}`,
+        orderNumber: `ORD-${Date.now()}${randomInt(1000, 10000)}`,
         userId,
         shippingAddressId: dto.shippingAddressId,
         branchId: location.branch?.id ?? null,
@@ -283,24 +290,22 @@ export class OrdersService {
             },
           });
 
-          if (branchStock) {
-            if (!branchStock.isActive) {
-              throw new BadRequestException(
-                `Producto no disponible en la sucursal: ${product.name}`,
-              );
-            }
-            if (branchStock.stock < item.quantity) {
-              throw new BadRequestException(
-                `Stock insuficiente en la sucursal para ${product.name}`,
-              );
-            }
-            await manager.decrement(
-              BranchProductStock,
-              { id: branchStock.id },
-              'stock',
-              item.quantity,
+          if (!branchStock || !branchStock.isActive) {
+            throw new BadRequestException(
+              `Producto no disponible en la sucursal: ${product.name}`,
             );
           }
+          if (branchStock.stock < item.quantity) {
+            throw new BadRequestException(
+              `Stock insuficiente en la sucursal para ${product.name}`,
+            );
+          }
+          await manager.decrement(
+            BranchProductStock,
+            { id: branchStock.id },
+            'stock',
+            item.quantity,
+          );
         }
 
         await manager.decrement(
@@ -316,7 +321,10 @@ export class OrdersService {
       savedOrder.totalAmount = total;
       await manager.save(savedOrder);
 
-      await manager.delete(CartItem, { userId });
+      await manager.delete(
+        CartItem,
+        location.branch ? { userId, branchId: location.branch.id } : { userId },
+      );
 
       const finalOrder = await manager.findOne(Order, {
         where: { id: savedOrder.id },

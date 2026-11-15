@@ -174,7 +174,7 @@ import { SortDropdown, SortOption } from './sort-dropdown';
     .collection-context-clear {
       border: none;
       background: none;
-      color: var(--color-primary);
+      color: var(--color-link);
       font-size: var(--text-body-sm);
       font-weight: 600;
       cursor: pointer;
@@ -224,7 +224,7 @@ import { SortDropdown, SortOption } from './sort-dropdown';
 
     .mobile-filter-btn:hover {
       border-color: var(--color-primary);
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .filter-icon {

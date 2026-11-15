@@ -123,7 +123,7 @@ import { SiteSettingsService } from '../../core/services/site-settings.service';
   styles: `
     .navbar {
       background-color: var(--color-primary);
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-top: 1px solid color-mix(in srgb, var(--color-on-primary) 12%, transparent);
       position: relative;
       z-index: 40;
     }
@@ -152,7 +152,7 @@ import { SiteSettingsService } from '../../core/services/site-settings.service';
     }
 
     .nav-toggle:hover {
-      background-color: rgba(255, 255, 255, 0.15);
+      background-color: color-mix(in srgb, var(--color-on-primary) 15%, transparent);
     }
 
     /* ─── Categories Dropdown ──────────────────── */
@@ -166,9 +166,9 @@ import { SiteSettingsService } from '../../core/services/site-settings.service';
       align-items: center;
       gap: var(--spacing-sm);
       padding: var(--spacing-sm) var(--spacing-lg);
-      background-color: var(--color-accent);
-      color: var(--color-on-accent);
-      border: none;
+      background-color: var(--color-canvas);
+      color: var(--color-ink);
+      border: 1px solid color-mix(in srgb, var(--color-ink) 10%, transparent);
       border-radius: var(--radius-pill);
       font-size: var(--text-body-md);
       font-weight: 600;
@@ -253,15 +253,18 @@ import { SiteSettingsService } from '../../core/services/site-settings.service';
     }
 
     .nav-link:hover {
-      color: var(--color-accent);
+      color: var(--color-on-primary);
+      opacity: 0.7;
     }
 
     .nav-link-active {
-      color: var(--color-accent);
+      color: var(--color-on-primary);
+      font-weight: 700;
     }
 
     .nav-link-deals {
-      color: var(--color-accent);
+      color: #991b1b;
+      font-weight: 700;
     }
 
     /* ─── Delivery Info ────────────────────────── */
@@ -269,7 +272,7 @@ import { SiteSettingsService } from '../../core/services/site-settings.service';
       display: flex;
       align-items: center;
       gap: var(--spacing-xs);
-      color: rgba(255, 255, 255, 0.75);
+      color: color-mix(in srgb, var(--color-on-primary) 75%, transparent);
       font-size: var(--text-body-xs);
       white-space: nowrap;
       flex-shrink: 0;
@@ -282,7 +285,7 @@ import { SiteSettingsService } from '../../core/services/site-settings.service';
     /* ─── Mobile Menu ──────────────────────────── */
     .mobile-menu {
       background-color: var(--color-primary);
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-top: 1px solid color-mix(in srgb, var(--color-on-primary) 12%, transparent);
     }
 
     .mobile-menu-inner {
@@ -303,12 +306,13 @@ import { SiteSettingsService } from '../../core/services/site-settings.service';
     }
 
     .mobile-link:hover {
-      color: var(--color-accent);
+      color: var(--color-on-primary);
+      opacity: 0.7;
     }
 
     .mobile-divider {
       height: 1px;
-      background-color: rgba(255, 255, 255, 0.12);
+      background-color: color-mix(in srgb, var(--color-on-primary) 12%, transparent);
       margin: var(--spacing-xxs) 0;
     }
 
@@ -341,11 +345,11 @@ import { SiteSettingsService } from '../../core/services/site-settings.service';
       }
 
       .nav-link:hover {
-        color: var(--color-primary);
+        color: var(--color-link);
       }
 
       .nav-link-active {
-        color: var(--color-primary);
+        color: var(--color-link);
       }
 
       .delivery-info {

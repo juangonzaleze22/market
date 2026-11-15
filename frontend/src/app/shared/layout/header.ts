@@ -29,7 +29,12 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
   selector: 'app-header',
   imports: [RouterLink, DatePipe, FormsModule],
   template: `
-    <header class="header-main" [class.is-compact]="compact()" data-testid="header">
+    <header
+      class="header-main"
+      [class.is-compact]="compact()"
+      [class.is-subpage]="showBack()"
+      data-testid="header"
+    >
       <div class="container-max header-inner">
         @if (showBack()) {
           <button
@@ -52,11 +57,12 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
+          <h1 class="header-title" data-testid="header-title">{{ pageTitle() }}</h1>
         }
 
         <!-- Logo -->
         <a routerLink="/" class="header-logo" data-testid="logo" aria-label="Ir al inicio">
-          <img [src]="branding().logoDarkUrl" [alt]="branding().brandName" class="header-logo-img" />
+          <img [src]="logoSrc()" [alt]="branding().brandName" class="header-logo-img" />
         </a>
 
         <!-- Address / branch selector (mobile) -->
@@ -417,8 +423,8 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
   `,
   styles: `
     .header-main {
-      background-color: var(--color-primary);
-      color: var(--color-on-primary);
+      background-color: var(--color-brand);
+      color: var(--color-on-brand);
     }
 
     .header-inner {
@@ -443,6 +449,10 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
     }
 
     .header-back {
+      display: none;
+    }
+
+    .header-title {
       display: none;
     }
 
@@ -515,6 +525,7 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
       display: flex;
       align-items: stretch;
       background-color: var(--color-canvas);
+      border: 1px solid var(--color-surface-pressed);
       border-radius: var(--radius-pill);
       overflow: hidden;
       height: 44px;
@@ -540,15 +551,15 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
       align-items: center;
       justify-content: center;
       width: 48px;
-      background-color: transparent;
-      color: var(--color-primary);
+      background-color: var(--color-primary);
+      color: var(--color-on-primary);
       border: none;
       cursor: pointer;
-      transition: color 0.15s ease;
+      transition: opacity 0.15s ease;
     }
 
     .search-btn:hover {
-      color: var(--color-ink);
+      opacity: 0.85;
     }
 
     .search-dropdown {
@@ -614,7 +625,7 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
       padding: var(--spacing-sm);
       font-size: var(--text-body-sm-strong);
       font-weight: 600;
-      color: var(--color-primary);
+      color: var(--color-link);
       background: none;
       border: none;
       border-top: 1px solid var(--color-surface-pressed);
@@ -645,14 +656,14 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
       border-radius: var(--radius-full);
       border: none;
       background: transparent;
-      color: var(--color-on-primary);
+      color: var(--color-on-brand);
       cursor: pointer;
       text-decoration: none;
       transition: background-color 0.15s ease;
     }
 
     .header-icon-btn:hover {
-      background-color: rgba(255, 255, 255, 0.15);
+      background-color: color-mix(in srgb, var(--color-on-brand) 15%, transparent);
     }
 
     .action-badge {
@@ -708,7 +719,7 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
       text-align: center;
       font-size: var(--text-body-sm-strong);
       font-weight: 600;
-      color: var(--color-primary);
+      color: var(--color-link);
       text-decoration: none;
       border-top: 1px solid var(--color-surface-pressed);
     }
@@ -791,7 +802,7 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
     .notif-mark-all {
       background: none;
       border: none;
-      color: var(--color-primary);
+      color: var(--color-link);
       font-size: var(--text-body-xs);
       cursor: pointer;
       padding: 0;
@@ -857,7 +868,7 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
       text-align: center;
       font-size: var(--text-body-sm-strong);
       font-weight: 600;
-      color: var(--color-primary);
+      color: var(--color-link);
       text-decoration: none;
     }
 
@@ -873,14 +884,35 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
         display: grid;
         grid-template-columns: auto minmax(0, 1fr) auto;
         grid-template-areas:
-          'back address profile'
-          'search search cart';
+          'address address cart'
+          'search search search';
         align-items: center;
         gap: var(--spacing-xs) var(--spacing-xxs);
         height: auto;
         padding-top: var(--spacing-sm);
         padding-bottom: var(--spacing-sm);
         transition: padding 0.2s ease;
+      }
+
+      .header-main.is-subpage .header-inner {
+        grid-template-areas: 'back title cart';
+      }
+
+      .header-main.is-subpage .header-search,
+      .header-main.is-subpage .header-address {
+        display: none;
+      }
+
+      .header-title {
+        grid-area: title;
+        display: block;
+        margin: 0;
+        font-size: var(--text-body-lg);
+        font-weight: 700;
+        color: var(--color-ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .header-back {
@@ -923,12 +955,9 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
       }
 
       .notif-wrap,
-      .fav-btn {
-        display: none;
-      }
-
+      .fav-btn,
       .profile-wrap {
-        grid-area: profile;
+        display: none;
       }
 
       .cart-btn {
@@ -968,13 +997,12 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
         color: var(--color-body);
       }
 
-      .header-main.is-compact .header-address,
-      .header-main.is-compact .profile-wrap {
+      .header-main.is-compact:not(.is-subpage) .header-address {
         display: none;
       }
 
-      .header-main.is-compact .header-inner {
-        grid-template-areas: 'back search cart';
+      .header-main.is-compact:not(.is-subpage) .header-inner {
+        grid-template-areas: 'search search cart';
       }
     }
 
@@ -997,7 +1025,13 @@ export class Header implements OnInit {
   protected readonly favorites = inject(FavoriteService);
   protected readonly notifications = inject(NotificationsService);
   protected readonly settingsService = inject(SiteSettingsService);
-  protected readonly branding = inject(ThemeService).branding;
+  private readonly themeService = inject(ThemeService);
+  protected readonly branding = this.themeService.branding;
+  protected readonly logoSrc = computed(() =>
+    this.themeService.brandIsLight()
+      ? this.branding().logoUrl
+      : this.branding().logoDarkUrl,
+  );
   private readonly productService = inject(ProductService);
   private readonly branchService = inject(BranchService);
   private readonly router = inject(Router);
@@ -1015,18 +1049,47 @@ export class Header implements OnInit {
     () => this.scrolled() && !this.profileOpen() && !this.notifOpen(),
   );
 
-  protected readonly showBack = toSignal(
+  protected readonly currentUrl = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map((event) => this.shouldShowBack(event.urlAfterRedirects)),
+      map((event) => event.urlAfterRedirects),
     ),
-    { initialValue: this.shouldShowBack(this.router.url) },
+    { initialValue: this.router.url },
   );
+
+  protected readonly showBack = computed(() => this.shouldShowBack(this.currentUrl()));
+  protected readonly pageTitle = computed(() => this.titleFor(this.currentUrl()));
 
   private shouldShowBack(url: string): boolean {
     const path = url.split('?')[0];
     if (path === '/') return false;
-    return !['/shop', '/messages', '/profile'].includes(path);
+    return !['/shop', '/messages', '/account'].includes(path);
+  }
+
+  private titleFor(url: string): string {
+    const path = url.split('?')[0];
+    if (path.startsWith('/product/')) return 'Producto';
+    if (path.startsWith('/order-completed/')) return 'Pedido completado';
+    if (path.startsWith('/account/order/')) return 'Detalle del pedido';
+
+    const titles: Record<string, string> = {
+      '/': this.branding().brandName,
+      '/shop': 'Buscar',
+      '/about': 'Quiénes somos',
+      '/favorites': 'Favoritos',
+      '/cart': 'Carrito',
+      '/checkout': 'Checkout',
+      '/orders': 'Mis pedidos',
+      '/messages': 'Mensajes',
+      '/account': 'Mi cuenta',
+      '/account/addresses': 'Mis direcciones',
+      '/account/notifications': 'Notificaciones',
+      '/verify-email': 'Verificar correo',
+      '/forgot-password': 'Recuperar contraseña',
+      '/reset-password': 'Restablecer contraseña',
+    };
+
+    return titles[path] ?? this.branding().brandName;
   }
 
   protected goBack(): void {

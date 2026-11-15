@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  HostListener,
   OnDestroy,
   ViewChild,
   computed,
@@ -114,7 +115,15 @@ export class App implements AfterViewInit, OnDestroy {
   }
 
   private syncHeaderHeight(): void {
-    this.headerHeight.set(this.headerRef?.nativeElement?.offsetHeight ?? 0);
+    const height = this.headerRef?.nativeElement?.offsetHeight ?? 0;
+    if (height !== this.headerHeight()) {
+      this.headerHeight.set(height);
+    }
+  }
+
+  @HostListener('window:resize')
+  protected onWindowResize(): void {
+    this.syncHeaderHeight();
   }
 
   ngOnDestroy(): void {

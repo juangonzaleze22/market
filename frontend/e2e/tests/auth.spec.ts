@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginViaModal } from '../helpers/login';
+import { loginViaModal, openAuthModal } from '../helpers/login';
 import { API_URL } from '../helpers/api';
 
 test.describe('Flujo de Autenticacion', () => {
@@ -8,8 +8,7 @@ test.describe('Flujo de Autenticacion', () => {
   test('un usuario puede registrarse y se le pide verificar el correo', async ({ page }) => {
     const testEmail = `test-${Date.now()}@example.com`;
     await page.goto('/');
-    await page.click('[data-testid="profile-button"]');
-    await page.click('[data-testid="profile-register"]');
+    await openAuthModal(page, 'register');
     await page.fill('[data-testid="auth-register-firstName"]', 'Test');
     await page.fill('[data-testid="auth-register-lastName"]', 'User');
     await page.fill('[data-testid="auth-register-email"]', testEmail);
@@ -28,8 +27,7 @@ test.describe('Flujo de Autenticacion', () => {
 
   test('el registro rechaza contraseñas débiles', async ({ page }) => {
     await page.goto('/');
-    await page.click('[data-testid="profile-button"]');
-    await page.click('[data-testid="profile-register"]');
+    await openAuthModal(page, 'register');
     await page.fill('[data-testid="auth-register-firstName"]', 'Weak');
     await page.fill('[data-testid="auth-register-lastName"]', 'Pass');
     await page.fill('[data-testid="auth-register-email"]', `weak-${Date.now()}@example.com`);
@@ -38,7 +36,11 @@ test.describe('Flujo de Autenticacion', () => {
     await expect(page.locator('[data-testid="auth-register-submit"]')).toBeDisabled();
   });
 
-  test('un usuario verifica su correo y puede iniciar sesion', async ({ page, request }) => {
+  test('un usuario verifica su correo y puede iniciar sesion', async ({
+    page,
+    request,
+    isMobile,
+  }) => {
     const testEmail = `verify-${Date.now()}@example.com`;
 
     const register = await request.post(`${API_URL}/auth/register`, {
@@ -71,20 +73,37 @@ test.describe('Flujo de Autenticacion', () => {
       sessionStorage.clear();
     });
     await loginViaModal(page, testEmail, testPassword);
-    await page.click('[data-testid="profile-button"]');
-    await expect(page.locator('[data-testid="profile-dropdown"]')).toBeVisible({
-      timeout: 10000,
-    });
-    await expect(page.locator('[data-testid="profile-dropdown"]')).toContainText(
-      'Verify User',
-    );
+    if (isMobile) {
+      await page.goto('/account');
+      await expect(page.locator('[data-testid="profile-header"]')).toContainText(
+        'Verify User',
+      );
+    } else {
+      await page.click('[data-testid="profile-button"]');
+      await expect(page.locator('[data-testid="profile-dropdown"]')).toBeVisible({
+        timeout: 10000,
+      });
+      await expect(page.locator('[data-testid="profile-dropdown"]')).toContainText(
+        'Verify User',
+      );
+    }
   });
 
-  test('un usuario puede iniciar sesion con la cuenta de test', async ({ page }) => {
+  test('un usuario puede iniciar sesion con la cuenta de test', async ({
+    page,
+    isMobile,
+  }) => {
     await loginViaModal(page, 'test@example.com', 'password');
-    await page.click('[data-testid="profile-button"]');
-    await expect(page.locator('[data-testid="profile-dropdown"]')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('[data-testid="profile-dropdown"]')).toContainText('Test User');
+    if (isMobile) {
+      await page.goto('/account');
+      await expect(page.locator('[data-testid="profile-header"]')).toContainText(
+        'Test User',
+      );
+    } else {
+      await page.click('[data-testid="profile-button"]');
+      await expect(page.locator('[data-testid="profile-dropdown"]')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-testid="profile-dropdown"]')).toContainText('Test User');
+    }
   });
 
   test('la recuperacion de contraseña responde de forma generica', async ({ page }) => {

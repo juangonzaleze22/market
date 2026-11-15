@@ -65,6 +65,13 @@ export interface OrderStatusEvent {
   orderNumber?: string;
   status: string;
   rejectionReason?: string | null;
+  createdAt?: string | null;
+  paidAt?: string | null;
+  processingStartedAt?: string | null;
+  preparedAt?: string | null;
+  deliveryAcceptedAt?: string | null;
+  deliveredAt?: string | null;
+  rejectedAt?: string | null;
 }
 
 export interface DeliveryLocationEvent {

@@ -13,6 +13,16 @@ import {
 } from '../../../core/models/site-theme';
 import { contrastRatio, isValidHex } from '../../../core/utils/color.util';
 
+const ELECTRO_PRESET: SiteThemeColors = {
+  primary: '#FFD200',
+  onPrimary: '#1c1c1c',
+  brand: '#ffffff',
+  onBrand: '#1c1c1c',
+  accent: '#FFD200',
+  onAccent: '#1c1c1c',
+  link: '#1C8057',
+};
+
 @Component({
   selector: 'app-admin-settings',
   imports: [FormsModule],
@@ -259,6 +269,12 @@ import { contrastRatio, isValidHex } from '../../../core/utils/color.util';
                 </div>
               }
 
+              <p class="settings-color-hint">
+                <strong>Color de marca</strong> pinta el header, footer y panel de administración.
+                <strong>Color primario</strong> se usa en botones, acciones y el navbar. Así puedes
+                tener un header blanco con el navbar y los botones en otro color.
+              </p>
+
               @for (field of brandingFields; track field.key) {
                 <div class="settings-brand-field">
                   <label class="settings-label">{{ field.label }}</label>
@@ -284,7 +300,10 @@ import { contrastRatio, isValidHex } from '../../../core/utils/color.util';
                 </div>
               }
 
-              <div class="flex justify-end">
+              <div class="flex justify-end gap-md flex-wrap">
+                <button type="button" class="settings-add-btn" (click)="applyElectroPreset()" data-testid="settings-theme-preset-electro">
+                  Aplicar estilo Electro
+                </button>
                 <button type="button" class="settings-add-btn" (click)="resetTheme()" data-testid="settings-theme-reset">
                   Restaurar apariencia por defecto
                 </button>
@@ -408,7 +427,7 @@ import { contrastRatio, isValidHex } from '../../../core/utils/color.util';
       border: 1px dashed var(--color-surface-pressed);
       border-radius: var(--radius-lg);
       background: none;
-      color: var(--color-primary);
+      color: var(--color-link);
       font-size: var(--text-body-sm);
       font-weight: 500;
       cursor: pointer;
@@ -471,6 +490,17 @@ import { contrastRatio, isValidHex } from '../../../core/utils/color.util';
       border-radius: var(--radius-lg);
       background-color: #fef2f2;
       color: #991b1b;
+    }
+
+    .settings-color-hint {
+      margin: 0;
+      font-size: var(--text-body-xs);
+      line-height: var(--text-body-xs--line-height);
+      color: var(--color-body);
+    }
+
+    .settings-color-hint strong {
+      color: var(--color-ink);
     }
 
     .settings-warning-title {
@@ -556,8 +586,10 @@ export class AdminSettings implements OnInit {
   protected readonly uploading = signal<keyof SiteThemeBranding | null>(null);
 
   protected readonly colorFields: { key: keyof SiteThemeColors; label: string }[] = [
-    { key: 'primary', label: 'Color primario' },
+    { key: 'primary', label: 'Color primario (botones, acciones y navbar)' },
     { key: 'onPrimary', label: 'Texto sobre primario' },
+    { key: 'brand', label: 'Color de marca (header y footer)' },
+    { key: 'onBrand', label: 'Texto sobre marca' },
     { key: 'accent', label: 'Color de acento' },
     { key: 'onAccent', label: 'Texto sobre acento' },
     { key: 'link', label: 'Color de enlaces' },
@@ -571,12 +603,12 @@ export class AdminSettings implements OnInit {
     {
       key: 'logoUrl',
       label: 'Logo principal',
-      hint: 'Se usa en fondos claros, como la página "Quiénes somos" y el login.',
+      hint: 'Versión oscura del logo. Se usa en fondos claros y cuando el color de marca es claro (navbar blanco).',
     },
     {
       key: 'logoDarkUrl',
       label: 'Logo para navbar',
-      hint: 'Versión clara del logo para el navbar y el panel de administración.',
+      hint: 'Versión clara (blanca) del logo. Se usa cuando el color de marca es oscuro.',
     },
     {
       key: 'faviconUrl',
@@ -603,7 +635,9 @@ export class AdminSettings implements OnInit {
       }
     };
     check('Texto sobre el color primario', colors.primary, colors.onPrimary);
+    check('Texto sobre el color de marca', colors.brand, colors.onBrand);
     check('Texto sobre el color de acento', colors.accent, colors.onAccent);
+    check('Enlaces sobre el fondo', '#ffffff', colors.link);
     return issues;
   });
 
@@ -709,6 +743,14 @@ export class AdminSettings implements OnInit {
 
   protected resetTheme(): void {
     this.themeForm.set(normalizeTheme(DEFAULT_SITE_THEME));
+    this.previewTheme();
+  }
+
+  protected applyElectroPreset(): void {
+    this.themeForm.update((theme) => ({
+      ...theme,
+      colors: { ...ELECTRO_PRESET },
+    }));
     this.previewTheme();
   }
 

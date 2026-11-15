@@ -27,7 +27,7 @@ interface FaqItem {
       <div class="text-center mb-xl">
         <p class="text-body-sm text-body mb-sm">Help & Questions</p>
         <h2 class="text-display-md font-bold">
-          Preguntas <span class="text-primary">Frecuentes</span>
+          Preguntas <span class="text-link">Frecuentes</span>
         </h2>
       </div>
 
@@ -36,13 +36,13 @@ interface FaqItem {
           <div
             class="border border-surface-pressed rounded-xl overflow-hidden transition-colors"
             [class.bg-primary]="openIndex() === i"
-            [class.text-white]="openIndex() === i"
+            [class.text-on-primary]="openIndex() === i"
             [class.bg-white]="openIndex() !== i"
           >
             <button
               type="button"
               class="w-full flex items-center justify-between px-xl py-lg text-left font-medium transition-colors"
-              [class.text-white]="openIndex() === i"
+              [class.text-on-primary]="openIndex() === i"
               [class.text-ink]="openIndex() !== i"
               (click)="toggle(i)"
               [attr.aria-expanded]="openIndex() === i"

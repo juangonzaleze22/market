@@ -12,7 +12,7 @@ import { environment } from '../../../environments/environment';
       <div class="container-max text-center">
         <h1 class="text-display-lg font-bold mb-sm">Pedido Completado</h1>
         <div class="flex items-center justify-center gap-sm text-body-sm text-body">
-          <a routerLink="/" class="hover:text-primary transition">Inicio</a>
+          <a routerLink="/" class="hover:text-link transition">Inicio</a>
           <span>/</span>
           <span class="text-ink font-medium">Pedido Completado</span>
         </div>
@@ -159,7 +159,7 @@ import { environment } from '../../../environments/environment';
           <div class="flex gap-lg justify-center mt-2xl">
             <a
               routerLink="/orders"
-              class="bg-primary text-white font-semibold px-xl py-md rounded-full hover:opacity-90 transition"
+              class="bg-primary text-on-primary font-semibold px-xl py-md rounded-full hover:opacity-90 transition"
               data-testid="view-orders-btn"
             >
               Ver mis pedidos
@@ -203,7 +203,7 @@ import { environment } from '../../../environments/environment';
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="var(--color-primary)"
+                  stroke="var(--color-link)"
                   stroke-width="2"
                   class="w-7 h-7"
                 >

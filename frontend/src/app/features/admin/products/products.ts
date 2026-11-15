@@ -196,7 +196,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
     .image-add-btn:hover {
       border-color: var(--color-primary);
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .pricing-card {
@@ -232,7 +232,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
     .final-price-value {
       font-size: 24px;
       font-weight: 700;
-      color: var(--color-primary);
+      color: var(--color-link);
       line-height: 1.2;
     }
 
@@ -297,7 +297,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
     .margin-preset-btn:hover:not(:disabled) {
       border-color: var(--color-primary);
-      color: var(--color-primary);
+      color: var(--color-link);
       background-color: var(--color-canvas-soft);
     }
 
@@ -436,26 +436,26 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
         >
           <!-- Table Header -->
           <div
-            class="grid grid-cols-12 gap-4 bg-accent text-white rounded-t-xl px-lg py-3 font-semibold text-body-sm"
+            class="grid grid-cols-12 gap-4 bg-accent text-on-accent rounded-t-xl px-lg py-3 font-semibold text-body-sm"
             data-testid="products-table-header"
           >
             <div class="col-span-3">Producto</div>
             <div
-              class="col-span-1 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-1 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('sku')"
               data-testid="sort-sku"
             >
               SKU{{ sortIcon('sku') }}
             </div>
             <div
-              class="col-span-1 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-1 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('costPrice')"
               data-testid="sort-costPrice"
             >
               Costo{{ sortIcon('costPrice') }}
             </div>
             <div
-              class="col-span-1 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-1 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('price')"
               data-testid="sort-price"
             >
@@ -463,7 +463,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
             </div>
             <div class="col-span-1">Margen</div>
             <div
-              class="col-span-1 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-1 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('stock')"
               data-testid="sort-stock"
             >
@@ -472,7 +472,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
             <div class="col-span-1">Categoría</div>
             <div class="col-span-1">Tags</div>
             <div
-              class="col-span-1 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm text-center"
+              class="col-span-1 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm text-center"
               (click)="onSort('isActive')"
               data-testid="sort-isActive"
             >

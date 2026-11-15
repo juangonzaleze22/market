@@ -1,6 +1,8 @@
 export interface SiteThemeColors {
   primary: string;
   onPrimary: string;
+  brand: string;
+  onBrand: string;
   accent: string;
   onAccent: string;
   link: string;
@@ -23,6 +25,8 @@ export const DEFAULT_SITE_THEME: SiteTheme = {
   colors: {
     primary: '#1C8057',
     onPrimary: '#ffffff',
+    brand: '#1C8057',
+    onBrand: '#ffffff',
     accent: '#f5a623',
     onAccent: '#1C8057',
     link: '#1C8057',
@@ -53,10 +57,18 @@ export function normalizeTheme(theme: Partial<SiteTheme> | null | undefined): Si
     }
   });
 
+  const incomingColors: Partial<SiteThemeColors> = theme?.colors ?? {};
+  const primary = incomingColors.primary?.trim() || DEFAULT_SITE_THEME.colors.primary;
+  const onPrimary = incomingColors.onPrimary?.trim() || DEFAULT_SITE_THEME.colors.onPrimary;
+
   return {
     colors: {
       ...DEFAULT_SITE_THEME.colors,
-      ...(theme?.colors ?? {}),
+      ...incomingColors,
+      primary,
+      onPrimary,
+      brand: incomingColors.brand?.trim() || primary,
+      onBrand: incomingColors.onBrand?.trim() || onPrimary,
     },
     branding,
   };

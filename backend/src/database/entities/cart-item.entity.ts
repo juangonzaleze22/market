@@ -4,18 +4,23 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
 import { Product } from './product.entity.js';
 
 @Entity('cart_items')
+@Index(['userId', 'branchId', 'productId'], { unique: true })
 export class CartItem {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
   userId: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  branchId: string | null;
 
   @Column({ default: 1 })
   quantity: number;

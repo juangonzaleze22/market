@@ -34,25 +34,25 @@ export interface DashboardNavItem {
 
       <!-- Sidebar -->
       <aside
-        class="w-64 bg-primary flex flex-col shrink-0 transition-transform duration-200 ease-in-out
+        class="w-64 bg-brand flex flex-col shrink-0 transition-transform duration-200 ease-in-out
                fixed inset-y-0 left-0 z-40 lg:relative lg:translate-x-0"
         [ngClass]="sidebarOpen() ? 'translate-x-0' : '-translate-x-full'"
         [attr.data-testid]="testIdPrefix() + '-sidebar'"
       >
         <!-- Logo -->
-        <div class="px-xl py-2xl border-b border-white/10">
+        <div class="px-xl py-2xl border-b dash-border">
           <div class="flex items-center justify-between">
             <a [routerLink]="homePath()" class="flex items-center gap-md" (click)="closeSidebar()">
               <div class="w-10 h-10 bg-accent rounded-full flex items-center justify-center text-on-accent font-bold text-body-md">{{ brandInitial() }}</div>
               <div class="flex flex-col">
-                <span class="text-body-lg font-bold text-white leading-tight">{{ branding().brandName }}<span class="text-accent">.</span></span>
-                <span class="text-body-xs text-white/50">{{ brandSubtitle() }}</span>
+                <span class="text-body-lg font-bold text-on-brand leading-tight">{{ branding().brandName }}<span class="text-accent">.</span></span>
+                <span class="text-body-xs dash-muted">{{ brandSubtitle() }}</span>
               </div>
             </a>
             <button
               type="button"
               (click)="sidebarOpen.set(false)"
-              class="lg:hidden text-white/70 hover:text-white p-sm"
+              class="lg:hidden dash-nav-link p-sm"
               [attr.data-testid]="testIdPrefix() + '-sidebar-close'"
             >
               <svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
@@ -70,9 +70,9 @@ export interface DashboardNavItem {
           @for (item of navItems(); track item.path) {
             <a
               [routerLink]="item.path"
-              routerLinkActive="bg-white/15 text-white"
+              routerLinkActive="dash-nav-active"
               [routerLinkActiveOptions]="{ exact: item.exact }"
-              class="flex items-center gap-md px-lg py-md rounded-lg text-body-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              class="flex items-center gap-md px-lg py-md rounded-lg text-body-sm dash-nav-link transition-colors"
               [attr.data-testid]="'nav-' + item.testId"
               (click)="closeSidebar()"
             >
@@ -90,8 +90,14 @@ export interface DashboardNavItem {
                   @case ('categories') {
                     <svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M4.25 2A2.25 2.25 0 002 4.25v2.5A2.25 2.25 0 004.25 9h2.5A2.25 2.25 0 009 6.75v-2.5A2.25 2.25 0 006.75 2h-2.5Zm0 9A2.25 2.25 0 002 13.25v2.5A2.25 2.25 0 004.25 18h2.5A2.25 2.25 0 009 15.75v-2.5A2.25 2.25 0 006.75 11h-2.5Zm9-9A2.25 2.25 0 0011 4.25v2.5A2.25 2.25 0 0013.25 9h2.5A2.25 2.25 0 0018 6.75v-2.5A2.25 2.25 0 0015.75 2h-2.5Zm0 9A2.25 2.25 0 0011 13.25v2.5A2.25 2.25 0 0013.25 18h2.5A2.25 2.25 0 0018 15.75v-2.5A2.25 2.25 0 0015.75 11h-2.5Z" clip-rule="evenodd"/></svg>
                   }
+                  @case ('collections') {
+                    <svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M3 4.5A1.5 1.5 0 0 1 4.5 3h11A1.5 1.5 0 0 1 17 4.5v1A1.5 1.5 0 0 1 15.5 7h-11A1.5 1.5 0 0 1 3 5.5v-1Z"/><path d="M3 9.5A1.5 1.5 0 0 1 4.5 8h11A1.5 1.5 0 0 1 17 9.5v1A1.5 1.5 0 0 1 15.5 12h-11A1.5 1.5 0 0 1 3 10.5v-1Z"/><path d="M3 14.5A1.5 1.5 0 0 1 4.5 13h11A1.5 1.5 0 0 1 17 14.5v1A1.5 1.5 0 0 1 15.5 17h-11A1.5 1.5 0 0 1 3 15.5v-1Z"/></svg>
+                  }
                   @case ('orders') {
                     <svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M.99 5.24A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.24l-8.5 6.5-8.5-6.5Zm.5 5.12V16.5A2.25 2.25 0 003.25 19h13.5A2.25 2.25 0 0019 16.75V10.36l-8.5 6.5-8.5-6.5Z" clip-rule="evenodd"/></svg>
+                  }
+                  @case ('branches') {
+                    <svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 1.5a6 6 0 0 0-6 6c0 2.44 1.66 5.05 3.27 6.84a23.9 23.9 0 0 0 2.39 2.28l.19.15.15.12a.75.75 0 0 0 .9 0l.15-.12.19-.15a23.9 23.9 0 0 0 2.39-2.28C15.34 12.55 17 9.94 17 7.5a6 6 0 0 0-6-6Zm0 8.25a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z" clip-rule="evenodd"/></svg>
                   }
                   @case ('expenses') {
                     <svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M2 4.75A2.75 2.75 0 014.75 2h10.5A2.75 2.75 0 0118 4.75v10.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25V4.75ZM5.75 6a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5Zm0 3.25a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5Zm0 3.25a.75.75 0 000 1.5h4.5a.75.75 0 000-1.5h-4.5Z" clip-rule="evenodd"/></svg>
@@ -124,20 +130,20 @@ export interface DashboardNavItem {
         </nav>
 
         <!-- User -->
-        <div class="px-xl py-xl border-t border-white/10">
+        <div class="px-xl py-xl border-t dash-border">
           <div class="flex items-center gap-md mb-lg">
             <div class="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-on-accent text-body-sm font-bold">
               {{ userInitials() }}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-body-sm text-white font-medium truncate">{{ userName() }}</p>
-              <p class="text-body-xs text-white/50 truncate">{{ userEmail() }}</p>
+              <p class="text-body-sm text-on-brand font-medium truncate">{{ userName() }}</p>
+              <p class="text-body-xs dash-muted truncate">{{ userEmail() }}</p>
             </div>
           </div>
           <div class="flex flex-col gap-xs">
             <a
               routerLink="/"
-              class="flex items-center gap-md px-lg py-md rounded-lg text-body-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              class="flex items-center gap-md px-lg py-md rounded-lg text-body-sm dash-nav-link transition-colors"
               [attr.data-testid]="testIdPrefix() + '-view-store'"
               (click)="closeSidebar()"
             >
@@ -149,7 +155,7 @@ export interface DashboardNavItem {
             <button
               type="button"
               (click)="logout()"
-              class="flex items-center gap-md px-lg py-md rounded-lg text-body-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              class="flex items-center gap-md px-lg py-md rounded-lg text-body-sm dash-nav-link transition-colors"
               [attr.data-testid]="testIdPrefix() + '-logout'"
             >
               <span class="w-5 h-5 flex items-center justify-center">
@@ -211,7 +217,7 @@ export interface DashboardNavItem {
                   @if (notifications.unreadCount() > 0) {
                     <button
                       type="button"
-                      class="text-caption text-primary hover:underline"
+                      class="text-caption text-link hover:underline"
                       (click)="notifications.markAllRead()"
                       [attr.data-testid]="testIdPrefix() + '-notifications-mark-all'"
                     >
@@ -247,6 +253,29 @@ export interface DashboardNavItem {
         </div>
       </main>
     </div>
+  `,
+  styles: `
+    .dash-border {
+      border-color: color-mix(in srgb, var(--color-on-brand) 12%, transparent);
+    }
+
+    .dash-muted {
+      color: color-mix(in srgb, var(--color-on-brand) 55%, transparent);
+    }
+
+    .dash-nav-link {
+      color: color-mix(in srgb, var(--color-on-brand) 70%, transparent);
+    }
+
+    .dash-nav-link:hover {
+      color: var(--color-on-brand);
+      background-color: color-mix(in srgb, var(--color-on-brand) 10%, transparent);
+    }
+
+    .dash-nav-active {
+      color: var(--color-on-brand);
+      background-color: color-mix(in srgb, var(--color-on-brand) 16%, transparent);
+    }
   `,
 })
 export class DashboardShell {

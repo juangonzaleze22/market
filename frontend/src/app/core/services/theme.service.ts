@@ -7,10 +7,13 @@ import {
   SiteThemeBranding,
   SiteThemeColors,
 } from '../models/site-theme';
+import { relativeLuminance } from '../utils/color.util';
 
 const COLOR_VARIABLES: Record<keyof SiteThemeColors, string> = {
   primary: '--color-primary',
   onPrimary: '--color-on-primary',
+  brand: '--color-brand',
+  onBrand: '--color-on-brand',
   accent: '--color-accent',
   onAccent: '--color-on-accent',
   link: '--color-link',
@@ -30,6 +33,9 @@ export class ThemeService {
 
   readonly theme = this.themeSignal.asReadonly();
   readonly branding = computed(() => this.themeSignal().branding);
+  readonly brandIsLight = computed(
+    () => relativeLuminance(this.themeSignal().colors.brand) >= 0.5,
+  );
 
   apply(theme: Partial<SiteTheme> | null | undefined): SiteTheme {
     const resolved = normalizeTheme(theme);
@@ -47,7 +53,7 @@ export class ThemeService {
         root.style.setProperty(COLOR_VARIABLES[key], value);
       }
     });
-    this.setMetaThemeColor(colors.primary);
+    this.setMetaThemeColor(colors.brand);
   }
 
   private applyBranding(branding: SiteThemeBranding, colors: SiteThemeColors): void {
@@ -120,7 +126,7 @@ export class ThemeService {
         display: 'standalone',
         scope: base,
         start_url: base,
-        theme_color: colors.primary,
+        theme_color: colors.brand,
         background_color: '#ffffff',
         icons: [
           {

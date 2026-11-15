@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CartService } from '../../core/services/cart.service';
 import { AuthService } from '../../core/services/auth.service';
+import { BranchService } from '../../core/services/branch.service';
 
 @Component({
   selector: 'app-cart',
@@ -14,7 +15,7 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="container-max text-center">
         <h1 class="text-display-lg font-bold mb-sm">Carrito de Compras</h1>
         <div class="flex items-center justify-center gap-sm text-body-sm text-body">
-          <a routerLink="/" class="hover:text-primary transition">Inicio</a>
+          <a routerLink="/" class="hover:text-link transition">Inicio</a>
           <span>/</span>
           <span class="text-ink font-medium">Carrito de Compras</span>
         </div>
@@ -89,7 +90,7 @@ import { AuthService } from '../../core/services/auth.service';
                   <!-- Price -->
                   <div class="col-span-2 text-center text-body-md">
                     @if (item.flashSalePrice) {
-                      <span class="text-primary font-semibold">{{
+                      <span class="text-link font-semibold">{{
                         item.flashSalePrice | currency
                       }}</span>
                       <span class="text-mute text-body-xs line-through ml-xs">{{
@@ -170,7 +171,7 @@ import { AuthService } from '../../core/services/auth.service';
                 />
                 <button
                   type="button"
-                  class="bg-primary text-white font-semibold px-lg py-md rounded-full hover:opacity-90 transition text-body-sm"
+                  class="bg-primary text-on-primary font-semibold px-lg py-md rounded-full hover:opacity-90 transition text-body-sm"
                   (click)="applyCoupon()"
                   data-testid="apply-coupon"
                 >
@@ -179,7 +180,7 @@ import { AuthService } from '../../core/services/auth.service';
               </div>
               <button
                 type="button"
-                class="text-body-sm text-primary underline hover:opacity-80 transition ml-auto"
+                class="text-body-sm text-link underline hover:opacity-80 transition ml-auto"
                 (click)="cart.clear()"
                 data-testid="clear-cart"
               >
@@ -199,6 +200,15 @@ import { AuthService } from '../../core/services/auth.service';
               </h2>
 
               <div class="space-y-lg">
+                @if (selectedBranch(); as branch) {
+                  <div
+                    class="flex items-center justify-between text-body-md"
+                    data-testid="cart-branch"
+                  >
+                    <span class="text-body">Sucursal</span>
+                    <span class="font-medium">{{ branch.name }}</span>
+                  </div>
+                }
                 <div class="flex items-center justify-between text-body-md">
                   <span class="text-body">Artículos</span>
                   <span class="font-medium">{{ cart.count() }}</span>
@@ -216,7 +226,7 @@ import { AuthService } from '../../core/services/auth.service';
                   <span class="font-medium">$0.00</span>
                 </div>
                 @if (discount() > 0) {
-                  <div class="flex items-center justify-between text-body-md text-primary">
+                  <div class="flex items-center justify-between text-body-md text-link">
                     <span>Descuento por cupón</span>
                     <span class="font-medium">-{{ discount() | currency }}</span>
                   </div>
@@ -238,7 +248,7 @@ import { AuthService } from '../../core/services/auth.service';
 
               <button
                 type="button"
-                class="w-full bg-primary text-white font-semibold py-3 rounded-full mt-xl hover:opacity-90 transition text-body-md disabled:opacity-60 disabled:cursor-not-allowed"
+                class="w-full bg-primary text-on-primary font-semibold py-3 rounded-full mt-xl hover:opacity-90 transition text-body-md disabled:opacity-60 disabled:cursor-not-allowed"
                 [disabled]="cart.validatingStock()"
                 (click)="checkout()"
                 data-testid="checkout-button"
@@ -281,7 +291,7 @@ import { AuthService } from '../../core/services/auth.service';
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="var(--color-primary)"
+                stroke="var(--color-link)"
                 stroke-width="2"
                 class="w-7 h-7"
               >
@@ -323,8 +333,10 @@ import { AuthService } from '../../core/services/auth.service';
 export class Cart {
   protected readonly cart = inject(CartService);
   protected readonly auth = inject(AuthService);
+  private readonly branchService = inject(BranchService);
   private readonly router = inject(Router);
 
+  protected readonly selectedBranch = this.branchService.selectedBranch;
   protected readonly items = computed(() => this.cart.items());
   protected readonly couponCode = signal('');
   protected readonly discount = signal(0);

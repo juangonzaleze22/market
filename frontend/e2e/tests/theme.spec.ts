@@ -34,6 +34,25 @@ test.describe('Apariencia configurable', () => {
     expect(reset).toBe('#1c8057');
   });
 
+  test('aplica el preset Electro con header blanco y navbar/botones amarillos', async ({ page }) => {
+    await page.click('[data-testid="settings-theme-preset-electro"]');
+
+    const applied = await page.evaluate(() => {
+      const style = getComputedStyle(document.documentElement);
+      return {
+        primary: style.getPropertyValue('--color-primary').trim().toLowerCase(),
+        brand: style.getPropertyValue('--color-brand').trim().toLowerCase(),
+        onBrand: style.getPropertyValue('--color-on-brand').trim().toLowerCase(),
+      };
+    });
+
+    expect(applied.primary).toBe('#ffd200');
+    expect(applied.brand).toBe('#ffffff');
+    expect(applied.onBrand).toBe('#1c1c1c');
+
+    await page.click('[data-testid="settings-theme-reset"]');
+  });
+
   test('avisa cuando el contraste no alcanza 4.5:1', async ({ page }) => {
     await page.locator('[data-testid="settings-hex-accent"]').fill('#ffff00');
     await page.locator('[data-testid="settings-hex-onAccent"]').fill('#ffffff');

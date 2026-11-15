@@ -84,20 +84,20 @@ import { RouterLink } from '@angular/router';
     }
 
     .title-accent {
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .btn-view-all {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background-color: var(--color-primary);
-      color: var(--color-on-primary);
+      background-color: transparent;
+      color: var(--color-link);
       font-size: 13px;
       font-weight: 600;
       line-height: 16px;
       border-radius: var(--radius-pill);
-      padding: 10px 20px;
+      padding: 6px 0;
       text-decoration: none;
       white-space: nowrap;
       transition: opacity 0.2s ease;
@@ -106,7 +106,7 @@ import { RouterLink } from '@angular/router';
     }
 
     .btn-view-all:hover {
-      opacity: 0.85;
+      opacity: 0.7;
     }
 
     .tab-pill {

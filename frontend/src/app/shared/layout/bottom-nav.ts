@@ -13,7 +13,7 @@ import { CartService } from '../../core/services/cart.service';
       <div class="flex items-center justify-around py-sm">
         <a
           routerLink="/"
-          routerLinkActive="text-primary"
+          routerLinkActive="text-link"
           [routerLinkActiveOptions]="{ exact: true }"
           class="flex flex-col items-center gap-xs p-sm text-mute"
         >
@@ -25,7 +25,7 @@ import { CartService } from '../../core/services/cart.service';
         </a>
         <a
           routerLink="/shop"
-          routerLinkActive="text-primary"
+          routerLinkActive="text-link"
           class="flex flex-col items-center gap-xs p-sm text-mute"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
@@ -49,7 +49,7 @@ import { CartService } from '../../core/services/cart.service';
         </button>
         <a
           routerLink="/messages"
-          routerLinkActive="text-primary"
+          routerLinkActive="text-link"
           class="flex flex-col items-center gap-xs p-sm text-mute"
           data-testid="bottom-chat-link"
         >
@@ -60,7 +60,7 @@ import { CartService } from '../../core/services/cart.service';
         </a>
         <a
           routerLink="/account"
-          routerLinkActive="text-primary"
+          routerLinkActive="text-link"
           class="flex flex-col items-center gap-xs p-sm text-mute"
           data-testid="bottom-profile-link"
         >

@@ -217,7 +217,7 @@ interface TimeLeft {
       font-family: var(--font-primary);
       font-size: 15px;
       font-weight: 700;
-      color: var(--color-primary);
+      color: var(--color-link);
       line-height: 20px;
     }
 
@@ -255,7 +255,7 @@ interface TimeLeft {
       border-radius: var(--radius-pill);
       border: none;
       background-color: color-mix(in srgb, var(--color-primary) 12%, var(--color-canvas));
-      color: var(--color-primary);
+      color: var(--color-link);
       font-family: var(--font-family-2);
       font-size: var(--text-body-sm);
       font-weight: 600;
@@ -277,12 +277,55 @@ interface TimeLeft {
 
     .flash-add-btn:disabled:hover {
       background-color: color-mix(in srgb, var(--color-primary) 12%, var(--color-canvas));
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .flash-add-icon {
       width: 14px;
       height: 14px;
+    }
+
+    swiper-container::part(button-prev),
+    swiper-container::part(button-next) {
+      width: 38px;
+      height: 38px;
+      margin-top: 0;
+      top: 36%;
+      transform: translateY(-50%);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--color-surface-pressed);
+      background-color: var(--color-canvas);
+      color: var(--color-ink);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+      transition:
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+    }
+
+    swiper-container::part(button-prev) {
+      left: 6px;
+    }
+
+    swiper-container::part(button-next) {
+      right: 6px;
+    }
+
+    swiper-container::part(button-prev):hover,
+    swiper-container::part(button-next):hover {
+      background-color: var(--color-canvas-soft);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    }
+
+    .carousel-arrow-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    @media (max-width: 767px) {
+      swiper-container::part(button-prev),
+      swiper-container::part(button-next) {
+        display: none;
+      }
     }
   `,
   template: `
@@ -328,6 +371,7 @@ interface TimeLeft {
           </app-section-header>
 
           <swiper-container
+            navigation='{"addIcons": false}'
             slides-per-view="2"
             space-between="12"
             free-mode="true"
@@ -335,6 +379,32 @@ interface TimeLeft {
             data-testid="flash-carousel"
             breakpoints='{"640": {"slidesPerView": 3, "spaceBetween": 12}, "768": {"slidesPerView": 4, "spaceBetween": 14}, "1024": {"slidesPerView": 5, "spaceBetween": 16}}'
           >
+            <svg
+              slot="button-prev"
+              class="carousel-arrow-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            <svg
+              slot="button-next"
+              class="carousel-arrow-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
             @for (item of flashSale.items; track item.id) {
               <swiper-slide>
                 <article class="flash-card" [attr.data-testid]="'flash-product-' + item.productId">
@@ -377,15 +447,13 @@ interface TimeLeft {
                       <span class="flash-original-price">{{ item.product.price | currency }}</span>
                     </div>
 
-                    <div class="flash-stock-section">
-                      @if (item.quantity <= 10) {
+                    @if (item.quantity <= 10) {
+                      <div class="flash-stock-section">
                         <p class="flash-stock-text flash-stock-low">
                           Solo quedan {{ item.quantity }} unidades
                         </p>
-                      } @else {
-                        <p class="flash-stock-text">Disponibles: {{ item.quantity }}</p>
-                      }
-                    </div>
+                      </div>
+                    }
 
                     <button
                       type="button"

@@ -8,6 +8,8 @@ import {
 export interface SiteThemeColors {
   primary: string;
   onPrimary: string;
+  brand: string;
+  onBrand: string;
   accent: string;
   onAccent: string;
   link: string;

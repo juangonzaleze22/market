@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
@@ -22,8 +23,11 @@ export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @Get()
-  findByUser(@CurrentUser('userId') userId: string) {
-    return this.cartService.findByUser(userId);
+  findByUser(
+    @CurrentUser('userId') userId: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    return this.cartService.findByUser(userId, branchId);
   }
 
   @Post()
@@ -46,7 +50,10 @@ export class CartController {
   }
 
   @Delete()
-  clear(@CurrentUser('userId') userId: string) {
-    return this.cartService.clear(userId);
+  clear(
+    @CurrentUser('userId') userId: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    return this.cartService.clear(userId, branchId);
   }
 }

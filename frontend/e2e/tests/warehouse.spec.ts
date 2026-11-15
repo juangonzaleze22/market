@@ -4,6 +4,7 @@ import {
   ADMIN_EMAIL,
   ADMIN_PASSWORD,
   API_URL,
+  defaultBranchId,
   registerCustomer,
   WAREHOUSE_EMAIL,
   WAREHOUSE_PASSWORD,
@@ -47,13 +48,16 @@ async function createPaidOrder(
   });
   const addressId = (await addressRes.json()).id as string;
 
-  const productsRes = await request.get(`${API}/products?inStock=true`);
+  const branchId = await defaultBranchId(request);
+  const productsRes = await request.get(
+    `${API}/products?inStock=true&branchId=${branchId}`,
+  );
   const products = (await productsRes.json()) as Array<{ id: string }>;
   const productId = products[0].id;
 
   await request.post(`${API}/cart`, {
     headers,
-    data: { productId, quantity: 1 },
+    data: { productId, quantity: 1, branchId },
   });
 
   const orderRes = await request.post(`${API}/orders`, {

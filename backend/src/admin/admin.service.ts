@@ -1430,6 +1430,9 @@ export class AdminService {
       order.rejectionReason = null;
       order.rejectedAt = null;
     }
+    if (!wasAccepted && isNowAccepted) {
+      order.paidAt = new Date();
+    }
     const saved = await this.orderRepository.save(order);
 
     if (!wasAccepted && isNowAccepted) {
@@ -1441,12 +1444,7 @@ export class AdminService {
     }
 
     if (previousStatus !== saved.status) {
-      this.orderChatGateway.emitOrderStatus(saved.id, {
-        orderId: saved.id,
-        orderNumber: saved.orderNumber,
-        status: saved.status,
-        rejectionReason: saved.rejectionReason,
-      });
+      this.orderChatGateway.emitOrderStatusFor(saved);
       await this.notifications.notifyOrderStatus({
         id: saved.id,
         orderNumber: saved.orderNumber,
@@ -1491,12 +1489,7 @@ export class AdminService {
     order.rejectedAt = new Date();
     const saved = await this.orderRepository.save(order);
 
-    this.orderChatGateway.emitOrderStatus(saved.id, {
-      orderId: saved.id,
-      orderNumber: saved.orderNumber,
-      status: saved.status,
-      rejectionReason: saved.rejectionReason,
-    });
+    this.orderChatGateway.emitOrderStatusFor(saved);
 
     await this.notifications.notifyOrderStatus({
       id: saved.id,

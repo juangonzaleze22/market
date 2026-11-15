@@ -1,8 +1,9 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, effect, signal, untracked } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
+import { BranchService } from './branch.service';
 import { ToastService } from './toast.service';
 import { FlyToCartService } from './fly-to-cart.service';
 import type { Product } from './product.service';
@@ -10,6 +11,7 @@ import type { Product } from './product.service';
 export interface CartItem {
   id: string;
   userId: string;
+  branchId: string | null;
   productId: string;
   quantity: number;
   flashSaleId: string | null;
@@ -74,6 +76,14 @@ export class CartService {
       .join('. ');
   });
 
+  private lastBranchId: string | null = null;
+  private readonly branchChange = effect(() => {
+    const branchId = this.branchService.getSelectedId();
+    if (branchId === this.lastBranchId) return;
+    this.lastBranchId = branchId;
+    untracked(() => this.load());
+  });
+
   openDrawer(): void {
     this.drawerOpen.set(true);
   }
@@ -90,6 +100,7 @@ export class CartService {
     private http: HttpClient,
     private api: ApiService,
     private auth: AuthService,
+    private branchService: BranchService,
     private toast: ToastService,
     private flyToCart: FlyToCartService
   ) {}
@@ -98,16 +109,26 @@ export class CartService {
     this.stockIssues.set([]);
     this.stockCheckError.set(null);
     if (this.auth.isAuthed()) {
-      this.http.get<CartItem[]>(this.api.url(this.path)).subscribe({
-        next: (items) => this.items.set(items),
-        error: (err) => {
-          if (this.isUnauthorized(err)) {
-            this.fallbackToGuestCart();
-            return;
-          }
-          this.items.set([]);
-        },
-      });
+      if (!this.branchService.getSelectedId()) {
+        this.items.set([]);
+        return;
+      }
+      const branchId = this.branchService.getSelectedId();
+      this.http
+        .get<CartItem[]>(this.api.url(this.path), { params: this.branchParams() })
+        .subscribe({
+          next: (items) => {
+            if (this.branchService.getSelectedId() !== branchId) return;
+            this.items.set(items);
+          },
+          error: (err) => {
+            if (this.isUnauthorized(err)) {
+              this.fallbackToGuestCart();
+              return;
+            }
+            this.items.set([]);
+          },
+        });
     } else {
       this.items.set(this.readLocal());
     }
@@ -115,8 +136,14 @@ export class CartService {
 
   validateStock(): Observable<StockIssue[]> {
     this.stockCheckError.set(null);
+    if (!this.branchService.getSelectedId()) {
+      this.stockIssues.set([]);
+      return of([]);
+    }
+    const branchId = this.branchService.getSelectedId();
     return this.fetchFreshItems().pipe(
       map((items) => {
+        if (this.branchService.getSelectedId() !== branchId) return [];
         this.items.set(items);
         const issues = this.computeStockIssues(items);
         this.stockIssues.set(issues);
@@ -151,14 +178,15 @@ export class CartService {
   }
 
   private fetchFreshItems(): Observable<CartItem[]> {
+    const params = this.branchParams();
     if (this.auth.isAuthed()) {
-      return this.http.get<CartItem[]>(this.api.url(this.path));
+      return this.http.get<CartItem[]>(this.api.url(this.path), { params });
     }
     const items = this.readLocal();
     if (items.length === 0) return of([]);
     return forkJoin(
       items.map((item) =>
-        this.http.get<Product>(this.api.url(`products/${item.productId}`)).pipe(
+        this.http.get<Product>(this.api.url(`products/${item.productId}`), { params }).pipe(
           map((product) => ({
             ...item,
             product: {
@@ -175,7 +203,10 @@ export class CartService {
       ),
     ).pipe(
       map((freshItems) => {
-        this.writeLocal(freshItems);
+        const freshById = new Map(freshItems.map((item) => [item.id, item]));
+        this.writeLocal(
+          this.readAllLocal().map((item) => freshById.get(item.id) ?? item),
+        );
         return freshItems;
       }),
     );
@@ -184,7 +215,11 @@ export class CartService {
   add(product: AddToCartProduct, quantity = 1, source?: HTMLElement | null): void {
     this.error.set(null);
     if (this.auth.isAuthed()) {
-      const payload: any = { productId: product.id, quantity };
+      const payload: any = {
+        productId: product.id,
+        quantity,
+        branchId: this.branchService.getSelectedId() ?? undefined,
+      };
       if (product.flashSaleId) {
         payload.flashSaleId = product.flashSaleId;
         payload.flashSalePrice = product.flashSalePrice;
@@ -214,9 +249,8 @@ export class CartService {
     this.notifyAdded(product.name, source);
   }
 
-  private notifyAdded(productName: string, source?: HTMLElement | null): void {
+  private notifyAdded(_productName: string, source?: HTMLElement | null): void {
     this.flyToCart.fly(source);
-    this.toast.success(`${productName} agregado al carrito`);
   }
 
   update(itemId: string, quantity: number): void {
@@ -276,21 +310,23 @@ export class CartService {
   clear(): void {
     this.error.set(null);
     if (this.auth.isAuthed()) {
-      this.http.delete<void>(this.api.url(this.path)).subscribe({
-        next: () => this.items.set([]),
-        error: (err) => {
-          if (this.isUnauthorized(err)) {
-            this.writeLocal([]);
-            this.fallbackToGuestCart();
-            return;
-          }
-          const msg = err?.error?.message || 'No se pudo vaciar el carrito';
-          this.error.set(msg);
-        },
-      });
+      this.http
+        .delete<void>(this.api.url(this.path), { params: this.branchParams() })
+        .subscribe({
+          next: () => this.items.set([]),
+          error: (err) => {
+            if (this.isUnauthorized(err)) {
+              this.writeLocal(this.withoutCurrentBranch());
+              this.fallbackToGuestCart();
+              return;
+            }
+            const msg = err?.error?.message || 'No se pudo vaciar el carrito';
+            this.error.set(msg);
+          },
+        });
       return;
     }
-    this.writeLocal([]);
+    this.writeLocal(this.withoutCurrentBranch());
     this.items.set([]);
   }
 
@@ -299,17 +335,21 @@ export class CartService {
       this.items.set(this.readLocal());
       return;
     }
-    const local = this.readLocal();
+    const local = this.readAllLocal();
     if (local.length === 0) {
       this.load();
       return;
     }
-    const calls: Observable<unknown>[] = local.map((i) =>
-      this.http.post<CartItem>(this.api.url(this.path), {
+    const currentBranchId = this.branchService.getSelectedId();
+    const calls: Observable<unknown>[] = local.map((i) => {
+      const branchId = i.branchId ?? currentBranchId ?? undefined;
+      const payload: any = {
         productId: i.productId,
         quantity: i.quantity,
-      })
-    );
+      };
+      if (branchId) payload.branchId = branchId;
+      return this.http.post<CartItem>(this.api.url(this.path), payload);
+    });
     forkJoin(calls).subscribe({
       complete: () => {
         this.writeLocal([]);
@@ -325,6 +365,11 @@ export class CartService {
     });
   }
 
+  private branchParams(): HttpParams {
+    const branchId = this.branchService.getSelectedId();
+    return branchId ? new HttpParams().set('branchId', branchId) : new HttpParams();
+  }
+
   private isUnauthorized(err: unknown): boolean {
     return (err as { status?: number })?.status === 401;
   }
@@ -335,18 +380,23 @@ export class CartService {
   }
 
   private addToLocalCart(product: AddToCartProduct, quantity: number): void {
-    const items = this.readLocal();
+    const branchId = this.branchService.getSelectedId();
+    const all = this.readAllLocal();
     const stock = product.stock;
-    const existing = items.find((i) => i.productId === product.id);
+    const existing = all.find(
+      (i) => i.productId === product.id && (i.branchId ?? branchId) === branchId,
+    );
     if (existing) {
       const next = existing.quantity + quantity;
       existing.quantity =
         stock != null ? Math.max(1, Math.min(next, stock)) : next;
       if (stock != null) existing.product.stock = stock;
+      if (!existing.branchId && branchId) existing.branchId = branchId;
     } else {
-      items.push({
-        id: `local-${product.id}`,
+      all.push({
+        id: `local-${branchId ?? 'none'}-${product.id}`,
         userId: '',
+        branchId,
         productId: product.id,
         quantity: stock != null ? Math.max(1, Math.min(quantity, stock)) : quantity,
         flashSaleId: product.flashSaleId ?? null,
@@ -360,29 +410,56 @@ export class CartService {
         },
       });
     }
-    this.writeLocal(items);
-    this.items.set(items);
+    this.writeLocal(all);
+    this.items.set(this.filterForBranch(all, branchId));
   }
 
   private updateLocalQuantity(itemId: string, quantity: number): void {
-    const items = this.readLocal().map((i) => {
+    const all = this.readAllLocal().map((i) => {
       if (i.id !== itemId) return i;
       const stock = i.product.stock;
       const capped =
         stock != null ? Math.max(1, Math.min(quantity, stock)) : quantity;
       return { ...i, quantity: capped };
     });
-    this.writeLocal(items);
-    this.items.set(items);
+    this.writeLocal(all);
+    this.items.set(this.filterForBranch(all, this.branchService.getSelectedId()));
   }
 
   private removeLocalItem(itemId: string): void {
-    const items = this.readLocal().filter((i) => i.id !== itemId);
-    this.writeLocal(items);
-    this.items.set(items);
+    const all = this.readAllLocal().filter((i) => i.id !== itemId);
+    this.writeLocal(all);
+    this.items.set(this.filterForBranch(all, this.branchService.getSelectedId()));
+  }
+
+  private withoutCurrentBranch(): CartItem[] {
+    const branchId = this.branchService.getSelectedId();
+    if (!branchId) return [];
+    return this.readAllLocal().filter((i) => i.branchId !== branchId);
+  }
+
+  private filterForBranch(items: CartItem[], branchId: string | null): CartItem[] {
+    if (!branchId) return items;
+    return items.filter((item) => item.branchId === branchId);
   }
 
   private readLocal(): CartItem[] {
+    const branchId = this.branchService.getSelectedId();
+    const all = this.readAllLocal();
+    if (!branchId) return all;
+
+    let changed = false;
+    const normalized = all.map((item) => {
+      if (item.branchId || !branchId) return item;
+      changed = true;
+      return { ...item, branchId };
+    });
+    if (changed) this.writeLocal(normalized);
+
+    return this.filterForBranch(normalized, branchId);
+  }
+
+  private readAllLocal(): CartItem[] {
     const raw = localStorage.getItem(this.storageKey);
     if (!raw) return [];
     try {

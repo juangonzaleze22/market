@@ -466,7 +466,7 @@ import { CheckoutStore } from '../checkout-store';
       background: none;
       font-size: var(--text-body-xs);
       font-weight: 600;
-      color: var(--color-primary);
+      color: var(--color-link);
       cursor: pointer;
       transition:
         background-color 0.2s ease,
@@ -561,7 +561,7 @@ import { CheckoutStore } from '../checkout-store';
       margin-bottom: var(--spacing-xxs);
       border-radius: 50%;
       background-color: var(--color-canvas-soft);
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .receipt-dropzone-icon svg {
@@ -618,7 +618,7 @@ import { CheckoutStore } from '../checkout-store';
 
     .receipt-change-btn:hover {
       border-color: var(--color-primary);
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .receipt-remove-btn:hover {

@@ -13,6 +13,11 @@ export interface Order {
   receiptUrl: string | null;
   rejectionReason: string | null;
   rejectedAt: string | null;
+  paidAt?: string | null;
+  processingStartedAt?: string | null;
+  preparedAt?: string | null;
+  deliveryAcceptedAt?: string | null;
+  deliveredAt?: string | null;
   deliveryId?: string | null;
   createdAt: string;
 }

@@ -45,9 +45,9 @@ type DashboardView = 'operations' | 'sales';
 const PIPELINE_STATUSES: { value: string; label: string; color: string }[] = [
   { value: 'pending', label: 'Pendientes', color: 'bg-gray-400' },
   { value: 'paid', label: 'Pagados', color: 'bg-blue-500' },
-  { value: 'processing', label: 'Preparación', color: 'bg-primary' },
+  { value: 'processing', label: 'Preparación', color: 'bg-indigo-500' },
   { value: 'shipped', label: 'Enviados', color: 'bg-amber-500' },
-  { value: 'out_for_delivery', label: 'Reparto', color: 'bg-accent' },
+  { value: 'out_for_delivery', label: 'Reparto', color: 'bg-cyan-500' },
   { value: 'delivered', label: 'Entregados', color: 'bg-green-500' },
   { value: 'cancelled', label: 'Cancelados', color: 'bg-red-500' },
 ];
@@ -96,7 +96,7 @@ interface AttentionItem {
               class="rounded-pill px-lg py-sm text-body-sm font-medium transition-colors"
               [ngClass]="
                 view() === 'operations'
-                  ? 'bg-ink text-on-primary'
+                  ? 'bg-ink text-on-dark'
                   : 'text-body hover:text-ink'
               "
               data-testid="view-operations"
@@ -108,7 +108,7 @@ interface AttentionItem {
               type="button"
               class="rounded-pill px-lg py-sm text-body-sm font-medium transition-colors"
               [ngClass]="
-                view() === 'sales' ? 'bg-ink text-on-primary' : 'text-body hover:text-ink'
+                view() === 'sales' ? 'bg-ink text-on-dark' : 'text-body hover:text-ink'
               "
               data-testid="view-sales"
               (click)="setView('sales')"
@@ -137,7 +137,7 @@ interface AttentionItem {
                 class="rounded-pill border px-md py-sm text-body-sm font-medium transition-colors"
                 [ngClass]="
                   period() === option.value
-                    ? 'bg-ink text-on-primary border-ink'
+                    ? 'bg-ink text-on-dark border-ink'
                     : 'bg-canvas text-body border-surface-pressed hover:border-ink'
                 "
                 [attr.data-testid]="'period-' + option.value"
@@ -159,22 +159,22 @@ interface AttentionItem {
         </div>
       } @else if (view() === 'operations') {
         <!-- Banda de mando -->
-        <section class="rounded-xl bg-primary px-xl py-xl text-on-primary" data-testid="command-bar">
+        <section class="rounded-xl bg-brand px-xl py-xl text-on-brand" data-testid="command-bar">
           <div class="grid gap-xl lg:grid-cols-3">
             <div>
-              <p class="text-body-sm text-on-primary/70">Pedidos por atender</p>
+              <p class="text-body-sm text-on-brand/70">Pedidos por atender</p>
               <p class="mt-xs text-display-xl font-bold leading-none" data-testid="command-backlog">
                 {{ number(data()?.ordersToPrepare) }}
               </p>
-              <p class="mt-xs text-body-xs text-on-primary/70">
+              <p class="mt-xs text-body-xs text-on-brand/70">
                 Pendientes + aceptados · backlog actual
               </p>
             </div>
 
             <div
-              class="border-t border-on-primary/15 pt-lg lg:border-l lg:border-t-0 lg:pl-xl lg:pt-0"
+              class="border-t border-on-brand/15 pt-lg lg:border-l lg:border-t-0 lg:pl-xl lg:pt-0"
             >
-              <p class="text-body-sm text-on-primary/70">Ingresos · {{ periodLabel() }}</p>
+              <p class="text-body-sm text-on-brand/70">Ingresos · {{ periodLabel() }}</p>
               <p class="mt-xs text-display-md font-bold leading-none" data-testid="command-revenue">
                 {{ money(data()?.totalRevenue) }}
               </p>
@@ -184,14 +184,14 @@ interface AttentionItem {
                   {{ deltaText(data()?.comparison?.revenue) }} vs período anterior
                 </p>
               } @else {
-                <p class="mt-xs text-body-xs text-on-primary/70">Sin comparación disponible</p>
+                <p class="mt-xs text-body-xs text-on-brand/70">Sin comparación disponible</p>
               }
             </div>
 
             <div
-              class="border-t border-on-primary/15 pt-lg lg:border-l lg:border-t-0 lg:pl-xl lg:pt-0"
+              class="border-t border-on-brand/15 pt-lg lg:border-l lg:border-t-0 lg:pl-xl lg:pt-0"
             >
-              <p class="text-body-sm text-on-primary/70">Tasa de cancelación</p>
+              <p class="text-body-sm text-on-brand/70">Tasa de cancelación</p>
               <p class="mt-xs text-display-md font-bold leading-none" data-testid="command-cancellation">
                 {{ percent(data()?.cancellationRate) }}
               </p>
@@ -208,7 +208,7 @@ interface AttentionItem {
                   anterior
                 </p>
               } @else {
-                <p class="mt-xs text-body-xs text-on-primary/70">Sin comparación disponible</p>
+                <p class="mt-xs text-body-xs text-on-brand/70">Sin comparación disponible</p>
               }
             </div>
           </div>
@@ -228,7 +228,7 @@ interface AttentionItem {
               <h2 class="text-body-lg font-bold">Requiere atención</h2>
               @if (attentionItems().length > 0) {
                 <span
-                  class="rounded-pill bg-ink px-sm py-xxs text-body-xs font-semibold text-on-primary"
+                  class="rounded-pill bg-ink px-sm py-xxs text-body-xs font-semibold text-on-dark"
                   >{{ attentionItems().length }}</span
                 >
               }
@@ -582,7 +582,7 @@ export class AdminDashboard implements OnInit {
 
   private readonly chartColors = computed(() => ({
     ...CHART_PALETTE,
-    primary: this.themeService.theme().colors.primary,
+    primary: this.themeService.theme().colors.link,
     accent: this.themeService.theme().colors.accent,
   }));
 
@@ -767,9 +767,12 @@ export class AdminDashboard implements OnInit {
     invert = false,
   ): string {
     if (value === null || value === undefined || value === 0) {
-      return 'text-on-primary/70';
+      return 'text-on-brand/70';
     }
     const isGood = invert ? value < 0 : value > 0;
+    if (this.themeService.brandIsLight()) {
+      return isGood ? 'text-green-600' : 'text-red-600';
+    }
     return isGood ? 'text-accent' : 'text-red-200';
   }
 

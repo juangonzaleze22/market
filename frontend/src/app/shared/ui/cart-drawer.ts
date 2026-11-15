@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { CartService } from '../../core/services/cart.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthModalService } from '../../core/services/auth-modal.service';
+import { BranchService } from '../../core/services/branch.service';
 
 @Component({
   selector: 'app-cart-drawer',
@@ -59,7 +60,14 @@ import { AuthModalService } from '../../core/services/auth-modal.service';
     <div class="drawer-panel" [class.open]="cart.drawerOpen()" data-testid="cart-drawer">
       <!-- Header -->
       <div class="flex items-center justify-between px-xl py-lg border-b border-surface-pressed">
-        <h2 class="text-body-lg-strong font-bold">Tu Carrito ({{ cart.count() }})</h2>
+        <div>
+          <h2 class="text-body-lg-strong font-bold">Tu Carrito ({{ cart.count() }})</h2>
+          @if (selectedBranch(); as branch) {
+            <p class="text-caption text-mute" data-testid="cart-drawer-branch">
+              Sucursal: {{ branch.name }}
+            </p>
+          }
+        </div>
         <button
           type="button"
           class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-canvas-soft transition text-ink"
@@ -104,7 +112,7 @@ import { AuthModalService } from '../../core/services/auth-modal.service';
             <p class="text-body-md text-mute mb-lg">Tu carrito está vacío</p>
             <button
               type="button"
-              class="bg-primary text-white font-semibold px-xl py-md rounded-full hover:opacity-90 transition text-body-sm"
+              class="bg-primary text-on-primary font-semibold px-xl py-md rounded-full hover:opacity-90 transition text-body-sm"
               (click)="goToShop()"
             >
               Explorar productos
@@ -136,7 +144,7 @@ import { AuthModalService } from '../../core/services/auth-modal.service';
               <!-- Info -->
               <div class="flex-1 min-w-0">
                 <p class="text-body-sm-strong truncate">{{ item.product.name }}</p>
-                <p class="text-body-sm text-primary font-medium mt-xxs">
+                <p class="text-body-sm text-link font-medium mt-xxs">
                   @if (item.flashSalePrice) {
                     {{ item.flashSalePrice | currency }}
                     <span class="text-mute text-body-xs line-through ml-xs">{{
@@ -225,7 +233,7 @@ import { AuthModalService } from '../../core/services/auth-modal.service';
           }
           <button
             type="button"
-            class="w-full bg-primary text-white font-semibold py-3 rounded-full hover:opacity-90 transition text-body-md disabled:opacity-60 disabled:cursor-not-allowed"
+            class="w-full bg-primary text-on-primary font-semibold py-3 rounded-full hover:opacity-90 transition text-body-md disabled:opacity-60 disabled:cursor-not-allowed"
             [disabled]="cart.validatingStock()"
             (click)="goToCheckout()"
             data-testid="drawer-checkout"
@@ -234,7 +242,7 @@ import { AuthModalService } from '../../core/services/auth-modal.service';
           </button>
           <button
             type="button"
-            class="w-full text-center text-body-sm text-primary font-medium hover:underline transition"
+            class="w-full text-center text-body-sm text-link font-medium hover:underline transition"
             (click)="cart.closeDrawer(); goToShop()"
           >
             Seguir comprando
@@ -248,7 +256,10 @@ export class CartDrawer {
   readonly cart = inject(CartService);
   private readonly auth = inject(AuthService);
   private readonly authModal = inject(AuthModalService);
+  private readonly branchService = inject(BranchService);
   private readonly router = inject(Router);
+
+  readonly selectedBranch = this.branchService.selectedBranch;
 
   goToShop(): void {
     this.router.navigate(['/shop']);

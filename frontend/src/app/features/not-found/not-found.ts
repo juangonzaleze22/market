@@ -98,7 +98,7 @@ import { Location } from '@angular/common';
       height: 72px;
       border-radius: var(--radius-full);
       background-color: var(--color-canvas-softer);
-      color: var(--color-primary);
+      color: var(--color-link);
       margin-bottom: var(--spacing-xl);
     }
 
@@ -185,7 +185,7 @@ import { Location } from '@angular/common';
     }
 
     .not-found-link:hover {
-      color: var(--color-primary);
+      color: var(--color-link);
       text-decoration: underline;
     }
 

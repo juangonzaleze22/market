@@ -27,9 +27,6 @@ import { Branch, BranchService } from '../../core/services/branch.service';
         </svg>
       </span>
       <span class="branch-fab-text">
-        <span class="branch-fab-caption">
-          {{ locating() ? 'Detectando...' : 'Sucursal' }}
-        </span>
         <span class="branch-fab-name">{{ branchName() }}</span>
       </span>
     </button>
@@ -120,7 +117,7 @@ import { Branch, BranchService } from '../../core/services/branch.service';
   styles: `
     :host {
       position: relative;
-      z-index: 45;
+      z-index: 100;
     }
 
     .branch-fab {
@@ -131,26 +128,26 @@ import { Branch, BranchService } from '../../core/services/branch.service';
       align-items: center;
       gap: var(--spacing-sm);
       max-width: calc(100vw - 32px);
-      padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-sm) var(--spacing-sm);
+      padding: 5px var(--spacing-md) 5px 5px;
       border: 1px solid var(--color-surface-pressed);
       border-radius: 999px;
-      background: var(--color-canvas);
+      background: color-mix(in srgb, var(--color-canvas) 94%, transparent);
       color: var(--color-ink);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
       cursor: pointer;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
     .branch-fab:hover {
       transform: translateY(-1px);
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
     }
 
     .branch-fab-icon {
       display: grid;
       place-items: center;
-      width: 34px;
-      height: 34px;
+      width: 28px;
+      height: 28px;
       border-radius: 999px;
       background: var(--color-primary);
       color: var(--color-on-primary);
@@ -158,31 +155,24 @@ import { Branch, BranchService } from '../../core/services/branch.service';
     }
 
     .branch-fab-icon svg {
-      width: 18px;
-      height: 18px;
+      width: 15px;
+      height: 15px;
     }
 
     .branch-fab-text {
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+      align-items: center;
       min-width: 0;
     }
 
-    .branch-fab-caption {
-      font-size: var(--text-body-xs);
-      color: var(--color-body);
-      line-height: 1.1;
-    }
-
     .branch-fab-name {
-      font-size: var(--text-body-sm);
+      font-size: var(--text-body-xs);
       font-weight: 600;
       line-height: 1.2;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 190px;
+      max-width: 150px;
     }
 
     .branch-backdrop {

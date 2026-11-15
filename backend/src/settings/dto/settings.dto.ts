@@ -31,6 +31,14 @@ class ThemeColorsDto {
   onPrimary: string;
 
   @IsHexColor()
+  @IsOptional()
+  brand?: string;
+
+  @IsHexColor()
+  @IsOptional()
+  onBrand?: string;
+
+  @IsHexColor()
   accent: string;
 
   @IsHexColor()

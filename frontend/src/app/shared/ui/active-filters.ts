@@ -69,7 +69,7 @@ export interface ActiveFilter {
       gap: var(--spacing-xs);
       padding: var(--spacing-xs) var(--spacing-md);
       background-color: color-mix(in srgb, var(--color-primary) 12%, var(--color-canvas));
-      color: var(--color-primary);
+      color: var(--color-link);
       border-radius: var(--radius-pill);
       font-size: var(--text-body-sm);
       font-weight: 500;
@@ -88,7 +88,7 @@ export interface ActiveFilter {
       border: none;
       background: none;
       cursor: pointer;
-      color: var(--color-primary);
+      color: var(--color-link);
       padding: 0;
       border-radius: 50%;
       transition: background-color 0.2s ease;
@@ -106,7 +106,7 @@ export interface ActiveFilter {
     .clear-all-btn {
       border: none;
       background: none;
-      color: var(--color-primary);
+      color: var(--color-link);
       font-size: var(--text-body-sm);
       font-weight: 600;
       cursor: pointer;

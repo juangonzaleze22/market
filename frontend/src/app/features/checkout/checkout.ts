@@ -69,7 +69,7 @@ import { CheckoutOrderSummary } from './components/checkout-order-summary';
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="var(--color-primary)"
+              stroke="var(--color-link)"
               stroke-width="2"
               aria-hidden="true"
             >
@@ -169,7 +169,7 @@ import { CheckoutOrderSummary } from './components/checkout-order-summary';
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="var(--color-primary)"
+                stroke="var(--color-link)"
                 stroke-width="2"
                 aria-hidden="true"
               >

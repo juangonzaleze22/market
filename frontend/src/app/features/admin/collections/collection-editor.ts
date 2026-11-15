@@ -167,7 +167,7 @@ import {
     }
 
     .back-link:hover {
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .back-link svg {

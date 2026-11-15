@@ -58,6 +58,12 @@ export class Order {
   @Column({ type: 'timestamptz', nullable: true })
   rejectedAt: Date | null;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  paidAt: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  processingStartedAt: Date | null;
+
   @Column({ type: 'uuid', nullable: true })
   preparedById: string | null;
 

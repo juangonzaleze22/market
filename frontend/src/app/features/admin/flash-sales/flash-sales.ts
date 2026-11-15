@@ -75,7 +75,7 @@ const EMPTY_FORM: FlashSaleForm = {
           class="bg-canvas rounded-xl border border-surface-pressed overflow-hidden max-md:hidden"
         >
           <div
-            class="grid grid-cols-12 gap-4 bg-accent text-white rounded-t-xl px-lg py-3 font-semibold text-body-sm"
+            class="grid grid-cols-12 gap-4 bg-accent text-on-accent rounded-t-xl px-lg py-3 font-semibold text-body-sm"
             data-testid="flash-sales-table-header"
           >
             <div class="col-span-3">Título</div>
@@ -466,7 +466,7 @@ const EMPTY_FORM: FlashSaleForm = {
                       <svg
                         viewBox="0 0 20 20"
                         fill="currentColor"
-                        class="w-5 h-5 text-primary shrink-0"
+                        class="w-5 h-5 text-link shrink-0"
                       >
                         <path
                           fill-rule="evenodd"
@@ -716,7 +716,7 @@ const EMPTY_FORM: FlashSaleForm = {
 
     .btn-filter.active {
       border-color: var(--color-primary);
-      color: var(--color-primary);
+      color: var(--color-link);
       background: color-mix(in srgb, var(--color-primary) 5%, transparent);
     }
 
@@ -768,7 +768,7 @@ const EMPTY_FORM: FlashSaleForm = {
     }
 
     .btn-clear-filter:hover {
-      color: var(--color-primary);
+      color: var(--color-link);
     }
   `,
 })

@@ -110,7 +110,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
           class="bg-canvas rounded-xl border border-surface-pressed overflow-hidden max-md:hidden"
         >
           <div
-            class="grid grid-cols-12 gap-4 bg-accent text-white rounded-t-xl px-lg py-3 font-semibold text-body-sm"
+            class="grid grid-cols-12 gap-4 bg-accent text-on-accent rounded-t-xl px-lg py-3 font-semibold text-body-sm"
             data-testid="banners-table-header"
           >
             <div class="col-span-1 text-center">#</div>
@@ -395,7 +395,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
               type="checkbox"
               [ngModel]="form().isActive"
               (ngModelChange)="patch({ isActive: $event })"
-              class="w-4 h-4 rounded border-surface-pressed text-primary focus:ring-primary"
+              class="w-4 h-4 rounded border-surface-pressed text-link focus:ring-primary"
               data-testid="form-active"
             />
             <label for="bf-active" class="text-body-md text-body"

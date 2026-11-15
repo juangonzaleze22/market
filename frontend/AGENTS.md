@@ -7,7 +7,8 @@
 ## 1. Design System Obligatorio
 
 ### Fuente
-- Usar siempre **Inter** como fuente principal.
+- Títulos (`h1`–`h6` y escalas `text-display-*`): **Montserrat** (`--font-heading`).
+- Resto de la UI: **Roboto** (`--font-primary`).
 - Fallbacks: `system-ui, 'Helvetica Neue', Arial, sans-serif`
 
 ### Paleta de Colores Permitida
@@ -15,8 +16,10 @@ Solo usar los siguientes tokens CSS. **No introducir colores arbitrarios.**
 
 | Token | Valor por defecto | Uso |
 |-------|-------|-----|
-| `--color-primary` | `#1C8057` | Botones primarios, navbar, marca |
+| `--color-primary` | `#1C8057` | Botones primarios, acciones (CTA) y barra de navegación |
 | `--color-on-primary` | `#ffffff` | Texto sobre color primario |
+| `--color-brand` | `#1C8057` | Superficies de marca: header, footer, sidebar admin, command bar |
+| `--color-on-brand` | `#ffffff` | Texto e iconos sobre color de marca |
 | `--color-accent` | `#f5a623` | Acentos, badges, top banner, hover |
 | `--color-on-accent` | `#1C8057` | Texto sobre color de acento |
 | `--color-ink` | `#000000` | Texto general |
@@ -29,12 +32,14 @@ Solo usar los siguientes tokens CSS. **No introducir colores arbitrarios.**
 | `--color-link` | `#1C8057` | Links |
 | `--color-black-elevated` | `#282828` | Superficies oscuras elevadas |
 
-> **Tema configurable:** `--color-primary`, `--color-on-primary`, `--color-accent`,
-> `--color-on-accent` y `--color-link` pueden sobrescribirse en runtime desde
-> **Admin → Configuración → Apariencia y Marca**. No hardcodear estos colores en
-> componentes: usar siempre las clases/tokens (`bg-primary`, `text-accent`,
-> `var(--color-primary)`). Los colores de estado (rojo/verde/azul de badges) sí
-> son semánticos y no forman parte del tema.
+> **Tema configurable:** `--color-primary`, `--color-on-primary`, `--color-brand`,
+> `--color-on-brand`, `--color-accent`, `--color-on-accent` y `--color-link` pueden
+> sobrescribirse en runtime desde **Admin → Configuración → Apariencia y Marca**.
+> No hardcodear estos colores en componentes: usar siempre las clases/tokens
+> (`bg-primary`, `bg-brand`, `text-on-brand`, `text-link`, `text-accent`,
+> `var(--color-primary)`). `primary` es para acciones/botones y el navbar; `brand`
+> para el header, footer y sidebar. Los colores de estado (rojo/verde/azul de
+> badges) sí son semánticos y no forman parte del tema.
 
 ### Botones
 - **Siempre** usar `border-radius: 999px` (pill shape) para botones.

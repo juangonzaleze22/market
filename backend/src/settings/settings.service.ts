@@ -11,6 +11,8 @@ export const DEFAULT_THEME: SiteTheme = {
   colors: {
     primary: '#1C8057',
     onPrimary: '#ffffff',
+    brand: '#1C8057',
+    onBrand: '#ffffff',
     accent: '#f5a623',
     onAccent: '#1C8057',
     link: '#1C8057',

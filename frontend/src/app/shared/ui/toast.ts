@@ -64,7 +64,7 @@ import { ToastService } from '../../core/services/toast.service';
     }
 
     .toast-icon--info {
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .toast-message {

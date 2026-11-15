@@ -7,7 +7,7 @@ import { ThemeService } from '../../core/services/theme.service';
   selector: 'app-footer',
   imports: [RouterLink],
   template: `
-    <footer class="bg-primary text-on-dark mt-3xl" data-testid="footer">
+    <footer class="bg-brand text-on-brand mt-3xl" data-testid="footer">
       <div class="container-max py-3xl">
         <div class="flex flex-col md:flex-row gap-3xl">
           <!-- Brand column — wider and takes remaining space -->
@@ -18,24 +18,24 @@ import { ThemeService } from '../../core/services/theme.service';
             </p>
             <!-- Social media links -->
             <div class="flex items-center gap-md mt-sm">
-              <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+              <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook" class="footer-social w-9 h-9 rounded-full flex items-center justify-center transition">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                   <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
                 </svg>
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener" aria-label="Twitter" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+              <a href="https://twitter.com" target="_blank" rel="noopener" aria-label="Twitter" class="footer-social w-9 h-9 rounded-full flex items-center justify-center transition">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                   <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
                 </svg>
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+              <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram" class="footer-social w-9 h-9 rounded-full flex items-center justify-center transition">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
                   <circle cx="12" cy="12" r="5"/>
                   <circle cx="17.5" cy="6.5" r="1.5"/>
                 </svg>
               </a>
-              <a href="https://tiktok.com" target="_blank" rel="noopener" aria-label="TikTok" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+              <a href="https://tiktok.com" target="_blank" rel="noopener" aria-label="TikTok" class="footer-social w-9 h-9 rounded-full flex items-center justify-center transition">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                   <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15.2a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.65a8.17 8.17 0 0 0 3.76.92V6.12a4.82 4.82 0 0 1-.01.57z"/>
                 </svg>
@@ -63,13 +63,26 @@ import { ThemeService } from '../../core/services/theme.service';
           </div>
         </div>
       </div>
-      <div class="border-t border-white/20">
+      <div class="border-t footer-divider">
         <div class="container-max py-lg flex items-center justify-between text-caption opacity-80">
           <p>© 2026 {{ branding().brandName }}. Todos los derechos reservados.</p>
           <p>Hecho con Angular y NestJS</p>
         </div>
       </div>
     </footer>
+  `,
+  styles: `
+    .footer-social {
+      background-color: color-mix(in srgb, var(--color-on-brand) 12%, transparent);
+    }
+
+    .footer-social:hover {
+      background-color: color-mix(in srgb, var(--color-on-brand) 24%, transparent);
+    }
+
+    .footer-divider {
+      border-color: color-mix(in srgb, var(--color-on-brand) 20%, transparent);
+    }
   `,
 })
 export class Footer {

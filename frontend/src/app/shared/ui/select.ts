@@ -247,7 +247,7 @@ export interface SelectOption {
 
     .select-check {
       flex-shrink: 0;
-      color: var(--color-primary);
+      color: var(--color-link);
       font-weight: 700;
     }
 

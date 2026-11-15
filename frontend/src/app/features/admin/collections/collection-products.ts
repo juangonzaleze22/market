@@ -348,7 +348,7 @@ const SELECTED_PAGE = 24;
     .link-btn {
       border: none;
       background: none;
-      color: var(--color-primary);
+      color: var(--color-link);
       font-size: var(--text-body-sm);
       font-weight: 600;
       cursor: pointer;
@@ -533,7 +533,7 @@ const SELECTED_PAGE = 24;
       font-size: var(--text-body-xs);
       font-weight: 600;
       background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-canvas));
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .selected-panel {

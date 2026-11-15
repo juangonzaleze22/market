@@ -402,16 +402,17 @@ Productos de una colección manual, con su posición curada.
 > **Restricción:** `(collection_id, product_id)` es único. Al borrar la colección o el producto, la fila se elimina en cascada.
 
 ### `cart_items`
-Items del carrito de compras por usuario.
+Items del carrito de compras por usuario y sucursal.
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | `id` | `uuid` | Identificador único |
 | `user_id` | `uuid` | FK al usuario |
+| `branch_id` | `uuid` | FK a la sucursal (nullable solo para datos legacy) |
 | `product_id` | `uuid` | FK al producto |
 | `quantity` | `integer` | Cantidad solicitada |
 
-> **Restricción:** Un usuario no puede tener dos veces el mismo producto en el carrito. Se actualiza la cantidad.
+> **Restricción:** El carrito es independiente por sucursal. Un usuario no puede tener dos veces el mismo producto en la misma sucursal (`user_id`, `branch_id`, `product_id` es único); se actualiza la cantidad.
 
 ### `favorites`
 Productos guardados como favoritos por cada usuario.
@@ -530,6 +531,7 @@ Direcciones de envío de los usuarios.
 |----------|------|-------------|
 | `users` → `orders` | 1:N | Un usuario puede tener muchos pedidos |
 | `users` → `cart_items` | 1:N | Un usuario tiene múltiples items en carrito |
+| `branches` → `cart_items` | 1:N | Cada sucursal tiene su propio carrito por usuario |
 | `users` → `favorites` | 1:N | Un usuario puede guardar varios productos favoritos |
 | `users` → `addresses` | 1:N | Un usuario puede tener varias direcciones |
 | `categories` → `products` | 1:N | Una categoría tiene muchos productos |
@@ -556,7 +558,8 @@ Direcciones de envío de los usuarios.
 - Los tokens de verificación y reseteo se guardan únicamente como hash SHA-256, son de un solo uso y tienen expiración.
 - Los usuarios nuevos deben verificar su correo antes de iniciar sesión. Las cuentas creadas por un administrador se marcan como verificadas.
 - `token_version` permite invalidar todas las sesiones al verificar el correo, cambiar/restablecer la contraseña o cerrar sesión en todos los dispositivos.
-- El carrito se limpia automáticamente al crear una orden exitosa.
+- El carrito es independiente por sucursal: al cambiar de sucursal se muestra el carrito de esa sucursal. Agregar al carrito y validar stock usan `branch_product_stock`, no el stock global.
+- Al crear una orden se usa únicamente el carrito de la sucursal resuelta y luego se limpia solo ese carrito.
 - `order_items` guarda una copia del nombre, precio y costo del producto para mantener el histórico y calcular márgenes reales.
 - Los gastos `operating` restan de la utilidad neta; los gastos `investment` se reportan aparte.
 - Los gastos recurrentes generan una fila mensual idempotente por plantilla mediante un cron diario.

@@ -44,7 +44,7 @@ import { OrderStatusBadge } from '../../shared/ui/order-status-badge';
             type="button"
             class="px-lg py-sm text-body-sm"
             [class.bg-primary]="scope() === 'available'"
-            [class.text-white]="scope() === 'available'"
+            [class.text-on-primary]="scope() === 'available'"
             (click)="setScope('available')"
             data-testid="delivery-scope-available"
           >
@@ -54,7 +54,7 @@ import { OrderStatusBadge } from '../../shared/ui/order-status-badge';
             type="button"
             class="px-lg py-sm text-body-sm"
             [class.bg-primary]="scope() === 'mine'"
-            [class.text-white]="scope() === 'mine'"
+            [class.text-on-primary]="scope() === 'mine'"
             (click)="setScope('mine')"
             data-testid="delivery-scope-mine"
           >
@@ -339,6 +339,7 @@ export class DeliveryOrders implements OnInit {
 
   protected searchTerm = '';
   private searchTimeout?: ReturnType<typeof setTimeout>;
+  private loadRequestId = 0;
   private watchId: number | null = null;
   private lastSentAt = 0;
   private lastSentLat = 0;
@@ -507,17 +508,21 @@ export class DeliveryOrders implements OnInit {
   }
 
   private loadOrders(): void {
+    const requestId = ++this.loadRequestId;
+    const isLatest = () => requestId === this.loadRequestId;
+
     this.loading.set(true);
     this.deliveryService
       .getOrders(this.scope(), this.page(), 10, this.searchTerm)
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(finalize(() => isLatest() && this.loading.set(false)))
       .subscribe({
         next: (res) => {
+          if (!isLatest()) return;
           this.orders.set(res.data);
           this.total.set(res.total);
           this.totalPages.set(res.totalPages);
         },
-        error: () => this.loading.set(false),
+        error: () => isLatest() && this.loading.set(false),
       });
   }
 }

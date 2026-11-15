@@ -11,6 +11,8 @@ import {
 } from '../../core/services/order.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthModalService } from '../../core/services/auth-modal.service';
+import { CartService } from '../../core/services/cart.service';
+import { FavoriteService } from '../../core/services/favorite.service';
 import { OrderStatusBadge } from '../../shared/ui/order-status-badge';
 
 @Component({
@@ -68,7 +70,7 @@ import { OrderStatusBadge } from '../../shared/ui/order-status-badge';
           <div class="flex items-center justify-between gap-xl flex-wrap">
             <div class="flex items-center gap-xl">
               <div class="w-16 h-16 rounded-full bg-canvas-softer flex items-center justify-center flex-shrink-0">
-                <span class="text-display-md font-bold text-primary">
+                <span class="text-display-md font-bold text-link">
                   {{ profile()?.firstName?.charAt(0) }}{{ profile()?.lastName?.charAt(0) }}
                 </span>
               </div>
@@ -82,7 +84,7 @@ import { OrderStatusBadge } from '../../shared/ui/order-status-badge';
                 }
               </div>
             </div>
-            <a routerLink="/account/addresses" class="btn-secondary inline-flex items-center gap-sm" data-testid="dashboard-addresses-link">
+            <a routerLink="/account/addresses" class="btn-secondary hidden md:inline-flex items-center gap-sm" data-testid="dashboard-addresses-link">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
@@ -91,6 +93,72 @@ import { OrderStatusBadge } from '../../shared/ui/order-status-badge';
             </a>
           </div>
         </div>
+
+        <!-- Mobile account navigation -->
+        <nav
+          class="bg-canvas rounded-xl border border-surface-pressed mb-xl overflow-hidden md:hidden"
+          aria-label="Navegación de cuenta"
+          data-testid="mobile-more-menu"
+        >
+          <a
+            routerLink="/orders"
+            class="flex items-center justify-between px-2xl py-lg border-b border-surface-pressed hover:bg-canvas-softer transition-colors"
+            data-testid="mobile-more-orders"
+          >
+            <span class="text-body-sm-strong">Mis Pedidos</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+          <a
+            routerLink="/account/addresses"
+            class="flex items-center justify-between px-2xl py-lg border-b border-surface-pressed hover:bg-canvas-softer transition-colors"
+            data-testid="mobile-more-addresses"
+          >
+            <span class="text-body-sm-strong">Mis Direcciones</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+          <a
+            routerLink="/favorites"
+            class="flex items-center justify-between px-2xl py-lg border-b border-surface-pressed hover:bg-canvas-softer transition-colors"
+            data-testid="mobile-more-favorites"
+          >
+            <span class="text-body-sm-strong">Favoritos</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+          <a
+            routerLink="/account/notifications"
+            class="flex items-center justify-between px-2xl py-lg border-b border-surface-pressed hover:bg-canvas-softer transition-colors"
+            data-testid="mobile-more-notifications"
+          >
+            <span class="text-body-sm-strong">Notificaciones</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+          <a
+            routerLink="/about"
+            class="flex items-center justify-between px-2xl py-lg border-b border-surface-pressed hover:bg-canvas-softer transition-colors"
+            data-testid="mobile-more-about"
+          >
+            <span class="text-body-sm-strong">Quiénes somos</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+          <button
+            type="button"
+            class="flex w-full items-center justify-between px-2xl py-lg text-left hover:bg-canvas-softer transition-colors"
+            (click)="logout()"
+            data-testid="mobile-more-logout"
+          >
+            <span class="text-body-sm-strong text-link">Cerrar sesión</span>
+          </button>
+        </nav>
 
         <!-- Security -->
         <div class="bg-canvas rounded-xl border border-surface-pressed p-2xl mb-xl" data-testid="account-security">
@@ -197,7 +265,7 @@ import { OrderStatusBadge } from '../../shared/ui/order-status-badge';
             <p class="text-caption text-body">Total Pedidos</p>
           </div>
           <div class="bg-canvas rounded-xl border border-surface-pressed p-xl text-center">
-            <p class="text-body-2xl font-bold text-primary" data-testid="stat-total-spent">
+            <p class="text-body-2xl font-bold text-link" data-testid="stat-total-spent">
               {{ '$' + (stats()?.totalSpent || 0 | number:'1.2-2') }}
             </p>
             <p class="text-caption text-body">Total Gastado</p>
@@ -220,7 +288,7 @@ import { OrderStatusBadge } from '../../shared/ui/order-status-badge';
         <div class="bg-canvas rounded-xl border border-surface-pressed overflow-hidden" data-testid="orders-section">
           <div class="px-2xl py-xl border-b border-surface-pressed flex justify-between items-center">
             <h2 class="text-body-lg font-bold">Mis Pedidos</h2>
-            <a routerLink="/orders" class="text-body-sm text-primary font-medium hover:underline">
+            <a routerLink="/orders" class="text-body-sm text-link font-medium hover:underline">
               Ver todos →
             </a>
           </div>
@@ -267,68 +335,20 @@ import { OrderStatusBadge } from '../../shared/ui/order-status-badge';
             </div>
           }
         </div>
-
-        <!-- Mobile-only shortcuts (footer/navbar are hidden on mobile) -->
-        <div
-          class="bg-canvas rounded-xl border border-surface-pressed mt-xl overflow-hidden md:hidden"
-          data-testid="mobile-more-menu"
-        >
-          <p class="px-2xl pt-lg pb-md text-body-sm-strong text-mute uppercase tracking-wide">
-            Más
-          </p>
-          <a
-            routerLink="/about"
-            class="flex items-center justify-between px-2xl py-lg border-t border-surface-pressed hover:bg-canvas-softer transition-colors"
-            data-testid="mobile-more-about"
-          >
-            <span class="text-body-sm-strong">Quiénes somos</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </a>
-          <a
-            routerLink="/favorites"
-            class="flex items-center justify-between px-2xl py-lg border-t border-surface-pressed hover:bg-canvas-softer transition-colors"
-            data-testid="mobile-more-favorites"
-          >
-            <span class="text-body-sm-strong">Favoritos</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </a>
-          <a
-            routerLink="/account/notifications"
-            class="flex items-center justify-between px-2xl py-lg border-t border-surface-pressed hover:bg-canvas-softer transition-colors"
-            data-testid="mobile-more-notifications"
-          >
-            <span class="text-body-sm-strong">Notificaciones</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </a>
-          <a
-            routerLink="/orders"
-            class="flex items-center justify-between px-2xl py-lg border-t border-surface-pressed hover:bg-canvas-softer transition-colors"
-            data-testid="mobile-more-orders"
-          >
-            <span class="text-body-sm-strong">Mis pedidos</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </a>
-        </div>
       }
     </section>
   `,
   styles: `
-    .text-primary {
-      color: var(--color-primary);
+    .text-link {
+      color: var(--color-link);
     }
   `,
 })
 export class UserDashboard implements OnInit {
   private readonly orderService = inject(OrderService);
   private readonly router = inject(Router);
+  private readonly cart = inject(CartService);
+  private readonly favorites = inject(FavoriteService);
   readonly auth = inject(AuthService);
   readonly authModal = inject(AuthModalService);
 
@@ -350,6 +370,13 @@ export class UserDashboard implements OnInit {
     this.showPasswordForm.set(!this.showPasswordForm());
     this.passwordError.set('');
     this.clearPasswordForm();
+  }
+
+  protected logout(): void {
+    this.auth.logout();
+    this.cart.load();
+    this.favorites.load();
+    this.router.navigate(['/']);
   }
 
   protected isNewPasswordValid(): boolean {

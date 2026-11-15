@@ -10,6 +10,10 @@ export class AddToCartDto {
 
   @IsOptional()
   @IsUUID()
+  branchId?: string;
+
+  @IsOptional()
+  @IsUUID()
   flashSaleId?: string;
 
   @IsOptional()

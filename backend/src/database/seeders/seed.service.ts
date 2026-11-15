@@ -337,6 +337,13 @@ export class SeedService {
         .set({ branchId: defaultBranchId })
         .where('branchId IS NULL')
         .execute();
+
+      await this.cartItemRepository
+        .createQueryBuilder()
+        .update(CartItem)
+        .set({ branchId: defaultBranchId })
+        .where('branchId IS NULL')
+        .execute();
     }
 
     const products = await this.productRepository.find();
@@ -344,27 +351,43 @@ export class SeedService {
     if (products.length === 0 || branches.length === 0) return;
 
     const existingRows = await this.branchStockRepository.find();
-    const existingKeys = new Set(
-      existingRows.map((row) => `${row.productId}:${row.branchId}`),
+    const existingByKey = new Map(
+      existingRows.map((row) => [`${row.productId}:${row.branchId}`, row]),
     );
 
-    const rows: BranchProductStock[] = [];
+    const rowsToCreate: BranchProductStock[] = [];
+    const rowsToUpdate: BranchProductStock[] = [];
+
     for (const branch of branches) {
       for (const product of products) {
         const key = `${product.id}:${branch.id}`;
-        if (existingKeys.has(key)) continue;
-        rows.push(
+        const isDefaultBranch = branch.id === defaultBranchId;
+        const existing = existingByKey.get(key);
+
+        if (existing) {
+          if (isDefaultBranch && existing.stock !== product.stock) {
+            existing.stock = product.stock;
+            rowsToUpdate.push(existing);
+          }
+          continue;
+        }
+
+        rowsToCreate.push(
           this.branchStockRepository.create({
             branchId: branch.id,
             productId: product.id,
-            stock: branch.id === defaultBranchId ? product.stock : 0,
+            stock: isDefaultBranch ? product.stock : 0,
           }),
         );
       }
     }
 
-    if (rows.length > 0) {
-      await this.branchStockRepository.save(rows);
+    if (rowsToCreate.length > 0) {
+      await this.branchStockRepository.save(rowsToCreate);
+    }
+
+    if (rowsToUpdate.length > 0) {
+      await this.branchStockRepository.save(rowsToUpdate);
     }
   }
 

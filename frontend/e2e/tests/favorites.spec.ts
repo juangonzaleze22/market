@@ -72,8 +72,8 @@ test.describe('Favoritos', () => {
     ).toHaveAttribute('aria-pressed', 'true');
 
     if (isMobile) {
-      await page.getByTestId('profile-button').click();
-      await page.getByTestId('profile-favorites').click();
+      await page.goto('/account');
+      await page.getByTestId('mobile-more-favorites').click();
     } else {
       await page.locator('[data-testid="favorites-button"]').click();
     }

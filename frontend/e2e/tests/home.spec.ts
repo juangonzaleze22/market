@@ -146,7 +146,11 @@ test.describe('Header', () => {  test('search autocomplete muestra resultados tr
     await expect(page.locator('[data-testid="search-result-item"]').first()).toBeVisible();
   });
 
-  test('profile dropdown muestra opciones para invitado', async ({ page }) => {
+  test('profile dropdown muestra opciones para invitado', async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, 'en mobile el acceso a cuenta está en la barra inferior');
     await page.goto('/');
     await page.locator('[data-testid="profile-button"]').click();
     await expect(page.locator('[data-testid="profile-dropdown"]')).toBeVisible();
@@ -165,11 +169,12 @@ test.describe('Header', () => {  test('search autocomplete muestra resultados tr
       await expect(
         page.locator('[data-testid="notifications-button"]'),
       ).toBeHidden();
+      await expect(page.locator('[data-testid="profile-button"]')).toBeHidden();
     } else {
       await expect(page.locator('[data-testid="favorites-button"]')).toBeVisible();
+      await expect(page.locator('[data-testid="profile-button"]')).toBeVisible();
     }
 
     await expect(page.locator('[data-testid="cart-button"]')).toBeVisible();
-    await expect(page.locator('[data-testid="profile-button"]')).toBeVisible();
   });
 });

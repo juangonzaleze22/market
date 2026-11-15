@@ -10,8 +10,10 @@ Green (`#1C8057`) represents freshness and nature; Yellow (`#f5a623`) adds energ
 
 | Name | Value | Token | Role |
 |---|---|---|---|
-| primary | `#1C8057` | `--color-primary` | Verde — color principal de marca, navbar, botones primarios. Configurable en Admin → Configuración → Apariencia |
-| on primary | `#ffffff` | `--color-on-primary` | Texto sobre fondo verde. Configurable |
+| primary | `#1C8057` | `--color-primary` | Verde — acciones/botones primarios (CTA) y barra de navegación. Configurable en Admin → Configuración → Apariencia |
+| on primary | `#ffffff` | `--color-on-primary` | Texto sobre color primario. Configurable |
+| brand | `#1C8057` | `--color-brand` | Superficies de marca: header, footer, sidebar admin, command bar. Configurable |
+| on brand | `#ffffff` | `--color-on-brand` | Texto e iconos sobre superficies de marca. Configurable |
 | accent | `#f5a623` | `--color-accent` | Amarillo — acentos, badges, banner superior, hover states. Configurable |
 | on accent | `#1C8057` | `--color-on-accent` | Texto sobre fondo amarillo. Configurable |
 | ink | `#000000` | `--color-ink` | Texto principal |
@@ -28,15 +30,17 @@ Green (`#1C8057`) represents freshness and nature; Yellow (`#f5a623`) adds energ
 
 > **Runtime theming:** `ThemeService` (`core/services/theme.service.ts`) sobrescribe
 > los tokens de marca en `document.documentElement` a partir de `SiteSettings.theme`.
-> Por eso los componentes deben consumir tokens (`bg-primary`, `text-accent`,
-> `var(--color-primary)`) y nunca hex de marca hardcodeados. Al usar modificadores
-> de opacidad (`bg-primary/10`), Tailwind v4 genera el fallback con `var(--color-primary)`
+> Por eso los componentes deben consumir tokens (`bg-primary`, `bg-brand`,
+> `text-on-brand`, `text-link`, `text-accent`, `var(--color-primary)`) y nunca hex de
+> marca hardcodeados. `primary` se reserva para acciones/botones y el navbar;
+> `brand` para el header, footer y sidebar. Al usar modificadores de opacidad
+> (`bg-primary/10`), Tailwind v4 genera el fallback con `var(--color-primary)`
 > dentro de `@supports`, por lo que también respetan el tema en navegadores modernos.
 
 ## Tokens — Typography
 
 ### UberMove, UberMoveText, system-ui, Helvetica Neue, Arial, sans-serif · `--font-primary`
-- **Substitute:** Inter, system-ui, sans-serif
+- **Substitute:** Roboto, system-ui, sans-serif
 - **Weights:** 700
 - **Sizes:** 40px, 28px, 26px, 20px, 18px
 - **Line height:** 52px, 36px, 34px, 28px, 26px
@@ -44,7 +48,7 @@ Green (`#1C8057`) represents freshness and nature; Yellow (`#f5a623`) adds energ
 - **Role:** Brand typography family observed across the documented type scale.
 
 ### UberMoveText, system-ui, Helvetica Neue, Arial, sans-serif · `--font-family-2`
-- **Substitute:** Inter, system-ui, sans-serif
+- **Substitute:** Montserrat, system-ui, sans-serif (títulos y escalas `text-display-*`)
 - **Weights:** 500, 400
 - **Sizes:** 16px, 14px, 13px, 12px
 - **Line height:** 24px, 22px, 18px, 18px
@@ -535,7 +539,8 @@ Green (`#1C8057`) represents freshness and nature; Yellow (`#f5a623`) adds energ
 
 ### Do
 
-- Use `--color-primary` (`#1a5632`) for primary actions, navbar, and brand elements.
+- Use `--color-primary` for primary actions/CTAs and the navigation bar, and `--color-brand` for the header, footer, and admin surfaces.
+- Use `--color-link` for emphasis text and links.
 - Use `--color-accent` (`#f5a623`) for highlights, badges, and energetic accents.
 - Keep page surfaces anchored to `--color-canvas`.
 - Preserve every typography style's documented size, line height, and letter spacing.

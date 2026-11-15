@@ -10,6 +10,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { UserRole } from '../database/entities/user.entity.js';
+import { Order } from '../database/entities/order.entity.js';
 import { ChatUser, OrderChatService } from './order-chat.service.js';
 import { ChatAttachmentDto, SendMessageDto } from './dto/chat.dto.js';
 
@@ -145,6 +146,22 @@ export class OrderChatGateway implements OnGatewayConnection {
       ?.to(orderRoom(orderId))
       .to(ADMIN_ROOM)
       .emit('orderStatus', payload);
+  }
+
+  emitOrderStatusFor(order: Order): void {
+    this.emitOrderStatus(order.id, {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      rejectionReason: order.rejectionReason,
+      createdAt: order.createdAt,
+      paidAt: order.paidAt,
+      processingStartedAt: order.processingStartedAt,
+      preparedAt: order.preparedAt,
+      deliveryAcceptedAt: order.deliveryAcceptedAt,
+      deliveredAt: order.deliveredAt,
+      rejectedAt: order.rejectedAt,
+    });
   }
 
   emitToAdmins(event: string, payload: unknown): void {

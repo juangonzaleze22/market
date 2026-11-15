@@ -67,6 +67,18 @@ export async function registerCustomer(
   return { email, password, token: auth.token, userId: auth.user.id };
 }
 
+export async function defaultBranchId(
+  request: APIRequestContext,
+): Promise<string> {
+  const res = await request.get(`${API_URL}/branches`);
+  const branches = (await res.json()) as Array<{
+    id: string;
+    isDefault?: boolean;
+  }>;
+  expect(branches.length, 'no branches seeded').toBeGreaterThan(0);
+  return (branches.find((branch) => branch.isDefault) ?? branches[0]).id;
+}
+
 export async function ensureAddress(
   request: APIRequestContext,
   token: string,
@@ -119,12 +131,13 @@ export async function createOrder(
 ): Promise<CreatedOrder> {
   const headers = { Authorization: `Bearer ${customer.token}` };
   const addressId = await ensureAddress(request, customer.token);
-  const productId = await firstProductId(request);
+  const branchId = await defaultBranchId(request);
+  const productId = await firstProductId(request, branchId);
 
-  await request.delete(`${API_URL}/cart`, { headers });
+  await request.delete(`${API_URL}/cart?branchId=${branchId}`, { headers });
   const added = await request.post(`${API_URL}/cart`, {
     headers,
-    data: { productId, quantity: 1 },
+    data: { productId, quantity: 1, branchId },
   });
   expect(added.ok(), 'add to cart failed').toBeTruthy();
 

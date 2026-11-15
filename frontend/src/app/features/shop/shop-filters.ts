@@ -245,7 +245,7 @@ export interface ShopFilterState {
 
     .btn-clear-filters:hover {
       border-color: var(--color-primary);
-      color: var(--color-primary);
+      color: var(--color-link);
       background-color: color-mix(in srgb, var(--color-primary) 5%, var(--color-canvas));
     }
 

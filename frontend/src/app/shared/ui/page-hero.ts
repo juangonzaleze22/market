@@ -42,8 +42,11 @@ export interface Breadcrumb {
     .page-hero-pattern {
       position: absolute;
       inset: 0;
-      opacity: 0.4;
-      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231a5632' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.65;
+      mix-blend-mode: multiply;
+      background-image: url('/assets/icons/bg-cover-repeat.webp');
+      background-repeat: repeat;
+      background-size: 420px auto;
       pointer-events: none;
     }
 
@@ -58,8 +61,8 @@ export interface Breadcrumb {
     }
 
     .page-hero-title {
-      font-size: var(--text-display-xxl);
-      line-height: 52px;
+      font-size: var(--text-display-xl);
+      line-height: var(--text-display-xl--line-height);
       font-weight: 700;
       color: var(--color-ink);
       margin: 0;
@@ -80,7 +83,7 @@ export interface Breadcrumb {
     }
 
     .breadcrumb-link:hover {
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .breadcrumb-separator {

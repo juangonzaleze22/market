@@ -244,6 +244,7 @@ export class WarehouseService {
     order.status = OrderStatus.PROCESSING;
     order.preparedById = userId;
     order.preparedAt = null;
+    order.processingStartedAt = new Date();
     const saved = await this.orderRepository.save(order);
     await this.notifications.notifyOrderStatus({
       id: saved.id,
@@ -251,12 +252,7 @@ export class WarehouseService {
       userId: saved.userId,
       status: saved.status,
     });
-    this.orderChatGateway.emitOrderStatus(saved.id, {
-      orderId: saved.id,
-      orderNumber: saved.orderNumber,
-      status: saved.status,
-      rejectionReason: null,
-    });
+    this.orderChatGateway.emitOrderStatusFor(saved);
     return this.toSummary(saved);
   }
 
@@ -334,12 +330,7 @@ export class WarehouseService {
       userId: saved.userId,
       status: saved.status,
     });
-    this.orderChatGateway.emitOrderStatus(saved.id, {
-      orderId: saved.id,
-      orderNumber: saved.orderNumber,
-      status: saved.status,
-      rejectionReason: null,
-    });
+    this.orderChatGateway.emitOrderStatusFor(saved);
     await this.notifications.notifyDeliveryReady({
       id: saved.id,
       orderNumber: saved.orderNumber,

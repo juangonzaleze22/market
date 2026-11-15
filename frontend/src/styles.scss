@@ -16,6 +16,16 @@ body {
   padding: 0;
 }
 
+/* Titulares en Montserrat; el resto de la UI en Roboto (--font-primary) */
+h1, h2, h3, h4, h5, h6,
+.text-display-xxl,
+.text-display-xl,
+.text-display-lg,
+.text-display-md,
+.text-display-sm {
+  font-family: var(--font-heading);
+}
+
 /* Mobile: shell tipo app — sin subnav de categorías ni footer */
 @media (max-width: 767px) {
   .subnav-wrap {
@@ -321,7 +331,7 @@ body {
 }
 
 .link-blue {
-  color: var(--color-primary);
+  color: var(--color-link);
   font-size: var(--text-body-md);
   line-height: var(--text-body-md--line-height);
   text-decoration: none;

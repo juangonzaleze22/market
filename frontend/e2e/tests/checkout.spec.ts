@@ -17,11 +17,11 @@ async function seedCart(
   branchId: string,
 ): Promise<void> {
   const headers = { Authorization: `Bearer ${customer.token}` };
-  await request.delete(`${API_URL}/cart`, { headers });
+  await request.delete(`${API_URL}/cart?branchId=${branchId}`, { headers });
   const productId = await firstProductId(request, branchId);
   const res = await request.post(`${API_URL}/cart`, {
     headers,
-    data: { productId, quantity: 1 },
+    data: { productId, quantity: 1, branchId },
   });
   expect(res.ok(), 'add to cart failed').toBeTruthy();
 }
@@ -249,7 +249,7 @@ test.describe('Checkout y Pedidos', () => {
     await expect(page.getByTestId('checkout-bar-title')).toHaveText('Envío');
   });
 
-  test('muestra el mapa de la dirección seleccionada con coordenadas', async ({
+  test('muestra el mapa en todas las direcciones con coordenadas', async ({
     request,
     page,
   }) => {
@@ -272,10 +272,12 @@ test.describe('Checkout y Pedidos', () => {
     const option = page
       .locator('[data-testid="address-option"]')
       .filter({ hasText: 'Mapa E2E' });
-    await option.click();
+    await expect(option).toBeVisible();
 
-    await expect(page.getByTestId('address-map-preview')).toBeVisible();
-    await expect(page.getByTestId('address-map-preview')).toHaveCount(1);
+    await expect(option.getByTestId('address-map-preview')).toBeVisible();
+
+    await option.click();
+    await expect(option.getByTestId('address-map-preview')).toBeVisible();
   });
 
   test('desktop mantiene el shell normal y el stepper lateral', async ({

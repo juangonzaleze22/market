@@ -200,7 +200,7 @@ import { ToastService } from '../../../core/services/toast.service';
 
     .status-pill {
       background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-canvas));
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .meta-text {

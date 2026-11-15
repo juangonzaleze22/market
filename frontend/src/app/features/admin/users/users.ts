@@ -83,26 +83,26 @@ interface ModalStep {
           class="bg-canvas rounded-xl border border-surface-pressed overflow-hidden max-md:hidden"
         >
           <div
-            class="grid grid-cols-12 gap-4 bg-accent text-white rounded-t-xl px-lg py-3 font-semibold text-body-sm"
+            class="grid grid-cols-12 gap-4 bg-accent text-on-accent rounded-t-xl px-lg py-3 font-semibold text-body-sm"
             data-testid="users-table-header"
           >
             <div class="col-span-3">Usuario</div>
             <div
-              class="col-span-3 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-3 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('email')"
               data-testid="sort-email"
             >
               Email{{ sortIcon('email') }}
             </div>
             <div
-              class="col-span-2 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-2 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('role')"
               data-testid="sort-role"
             >
               Rol{{ sortIcon('role') }}
             </div>
             <div
-              class="col-span-2 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-2 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('createdAt')"
               data-testid="sort-createdAt"
             >
@@ -495,7 +495,7 @@ interface ModalStep {
                 <div class="bg-canvas-soft rounded-xl p-lg text-center">
                   <p
                     class="text-body-xl font-bold"
-                    style="color: var(--color-primary)"
+                    style="color: var(--color-link)"
                     data-testid="user-stat-spent"
                   >
                     {{ detail.stats.totalSpent | currency }}
@@ -882,7 +882,7 @@ interface ModalStep {
     :host ::ng-deep .modal-timeline-step.active .modal-step-icon {
       background-color: var(--color-canvas);
       border-color: var(--color-primary);
-      color: var(--color-primary);
+      color: var(--color-link);
     }
     :host ::ng-deep .modal-step-dot {
       width: 8px;

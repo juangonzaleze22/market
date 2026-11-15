@@ -48,7 +48,7 @@ import { productTransitionName } from '../../core/utils/view-transition';
           [attr.fill]="isFavorite() ? 'currentColor' : 'none'"
           stroke="currentColor"
           stroke-width="2"
-          class="w-5 h-5"
+          class="w-4 h-4"
         >
           <path
             d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
@@ -100,14 +100,13 @@ import { productTransitionName } from '../../core/utils/view-transition';
           >{{ product().name }}</a
         >
 
-        <!-- Description -->
-        <p class="product-meta" data-testid="product-description">{{ product().description }}</p>
-
-        <!-- Stock -->
-        @if (!isOutOfStock()) {
-          <p class="product-stock" data-testid="product-stock">{{ product().stock }} disponibles</p>
-        } @else {
+        <!-- Stock: solo se muestra cuando aporta información (agotado o últimas unidades) -->
+        @if (isOutOfStock()) {
           <p class="product-stock product-stock-out" data-testid="product-stock">Sin stock</p>
+        } @else if (product().stock <= 5) {
+          <p class="product-stock" data-testid="product-stock">
+            Últimas {{ product().stock }} unidades
+          </p>
         }
 
         <!-- Price + Add row -->
@@ -264,25 +263,24 @@ import { productTransitionName } from '../../core/utils/view-transition';
     /* Favorite button */
     .btn-favorite {
       position: absolute;
-      top: 12px;
-      right: 12px;
+      top: 10px;
+      right: 10px;
       z-index: 10;
-      width: 40px;
-      height: 40px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background-color: var(--color-canvas);
-      border: none;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      background-color: color-mix(in srgb, var(--color-canvas) 88%, transparent);
+      border: 1px solid var(--color-surface-pressed);
       display: grid;
       place-items: center;
       cursor: pointer;
       transition: all 0.2s ease;
-      color: var(--color-ink);
+      color: var(--color-body);
     }
 
     .btn-favorite:hover,
     .btn-favorite.active {
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .btn-favorite.active {
@@ -334,15 +332,17 @@ import { productTransitionName } from '../../core/utils/view-transition';
     }
 
     .product-category {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--color-primary);
-      line-height: 16px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--color-body);
+      line-height: 14px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
     .product-name {
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 600;
       line-height: 20px;
       color: var(--color-ink);
       text-decoration: none;
@@ -350,27 +350,17 @@ import { productTransitionName } from '../../core/utils/view-transition';
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      min-height: 40px;
     }
 
     .product-name:hover {
       opacity: 0.7;
     }
 
-    .product-meta {
-      font-size: 12px;
-      color: var(--color-body);
-      line-height: 16px;
-      min-height: 48px;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
     .product-stock {
       font-size: 12px;
       font-weight: 500;
-      color: var(--color-primary);
+      color: var(--color-body);
       line-height: 16px;
     }
 
@@ -423,7 +413,7 @@ import { productTransitionName } from '../../core/utils/view-transition';
       border-radius: 50%;
       border: none;
       background-color: color-mix(in srgb, var(--color-primary) 12%, var(--color-canvas));
-      color: var(--color-primary);
+      color: var(--color-link);
       cursor: pointer;
       transition: all 0.2s ease;
       flex-shrink: 0;

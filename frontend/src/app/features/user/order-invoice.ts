@@ -210,7 +210,7 @@ import { OrderStatusBadge } from '../../shared/ui/order-status-badge';
                 class="flex justify-between text-body-sm-strong pt-md border-t border-surface-pressed"
               >
                 <span class="text-ink">Total</span>
-                <span class="text-primary text-body-lg font-bold" data-testid="invoice-total">
+                <span class="text-link text-body-lg font-bold" data-testid="invoice-total">
                   {{ '$' + (order()?.totalAmount || 0 | number: '1.2-2') }}
                 </span>
               </div>
@@ -290,8 +290,8 @@ import { OrderStatusBadge } from '../../shared/ui/order-status-badge';
     </section>
   `,
   styles: `
-    .text-primary {
-      color: var(--color-primary);
+    .text-link {
+      color: var(--color-link);
     }
     .badge-lg {
       padding: 6px 12px;

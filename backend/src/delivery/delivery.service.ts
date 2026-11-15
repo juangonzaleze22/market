@@ -298,12 +298,7 @@ export class DeliveryService {
   }
 
   private emitStatus(order: Order): void {
-    this.orderChatGateway.emitOrderStatus(order.id, {
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      status: order.status,
-      rejectionReason: null,
-    });
+    this.orderChatGateway.emitOrderStatusFor(order);
   }
 
   private positionOf(order: Order) {

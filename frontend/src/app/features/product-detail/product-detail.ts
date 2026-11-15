@@ -116,7 +116,7 @@ import { SectionHeader } from '../../shared/ui/section-header';
     .info-category {
       font-size: var(--text-body-md);
       font-weight: 500;
-      color: var(--color-primary);
+      color: var(--color-link);
       line-height: 22px;
     }
 
@@ -366,7 +366,7 @@ import { SectionHeader } from '../../shared/ui/section-header';
 
     .btn-wishlist:hover,
     .btn-wishlist.active {
-      color: var(--color-primary);
+      color: var(--color-link);
       border-color: var(--color-primary);
     }
 
@@ -470,7 +470,7 @@ import { SectionHeader } from '../../shared/ui/section-header';
     }
 
     .tab-btn.active {
-      color: var(--color-primary);
+      color: var(--color-link);
       border-bottom-color: var(--color-primary);
     }
 
@@ -822,7 +822,7 @@ import { SectionHeader } from '../../shared/ui/section-header';
             @if (p.stock <= 0) {
               <div class="flex flex-col gap-sm mt-sm" data-testid="restock-waitlist">
                 @if (restockSent()) {
-                  <p class="text-body-sm text-primary" data-testid="restock-success">
+                  <p class="text-body-sm text-link" data-testid="restock-success">
                     Listo. Te avisaremos cuando vuelva a estar disponible.
                   </p>
                 } @else {

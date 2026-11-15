@@ -48,13 +48,13 @@ import { SiteSettingsService } from '../../core/services/site-settings.service';
       width: 22px;
       height: 22px;
       border-radius: var(--radius-full);
-      background-color: color-mix(in srgb, var(--color-primary) 15%, transparent);
+      background-color: color-mix(in srgb, var(--color-on-accent) 15%, transparent);
       color: var(--color-on-accent);
       transition: background-color 0.15s ease;
     }
 
     .top-banner-socials a:hover {
-      background-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+      background-color: color-mix(in srgb, var(--color-on-accent) 30%, transparent);
     }
 
     @media (min-width: 768px) {

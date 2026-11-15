@@ -31,7 +31,7 @@ import { CheckoutStore } from '../checkout-store';
         @if (store.selectedAddress(); as address) {
           <p class="review-main">
             @if (address.label) {
-              <span class="text-primary font-semibold">{{ address.label }}</span>
+              <span class="text-link font-semibold">{{ address.label }}</span>
               <span class="text-mute"> — </span>
             }
             {{ address.street }}
@@ -149,7 +149,7 @@ import { CheckoutStore } from '../checkout-store';
       background: none;
       font-size: var(--text-body-sm-strong);
       font-weight: 600;
-      color: var(--color-primary);
+      color: var(--color-link);
       cursor: pointer;
     }
 

@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { Breadcrumb, PageHero } from '../../shared/ui/page-hero';
 import { CategoryService } from '../../core/services/category.service';
 import { ProductService } from '../../core/services/product.service';
@@ -34,7 +34,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   imports: [PageHero],
   template: `
     <div data-testid="about-page">
-      <app-page-hero title="Quiénes somos" [breadcrumbs]="breadcrumbs" />
+      <app-page-hero title="Qui�nes somos" [breadcrumbs]="breadcrumbs" />
 
       <!-- Nuestra historia -->
       <section class="container-max about-story" data-testid="about-story">
@@ -46,17 +46,17 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           </div>
           <div class="story-badge">
             <strong>5+</strong>
-            <span>años de<br />trayectoria</span>
+            <span>a�os de<br />trayectoria</span>
           </div>
         </div>
 
         <div class="story-body">
-          <p class="m-0 text-body-sm font-semibold uppercase tracking-wider text-primary">Nuestra historia</p>
+          <p class="m-0 text-body-sm font-semibold uppercase tracking-wider text-link">Nuestra historia</p>
           <h2 class="m-0 text-balance text-display-xxl font-bold text-ink max-lg:text-display-xl" data-testid="about-story-title">
-            Tu tienda de confianza para <span class="text-primary">cada día</span>
+            Tu tienda de confianza para <span class="text-link">cada d�a</span>
           </h2>
           <p class="m-0 measure text-body-lg text-body">
-            En {{ branding().brandName }} creemos que comprar lo esencial debería ser simple, rápido y
+            En {{ branding().brandName }} creemos que comprar lo esencial deber�a ser simple, r�pido y
             confiable. Desde 2021 conectamos a miles de familias con productos de calidad, a
             precios justos y con entregas que llegan cuando prometemos.
           </p>
@@ -76,7 +76,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
           <div class="story-signature">
             <img [src]="branding().logoUrl" [alt]="branding().brandName" class="signature-logo" />
-            <p class="m-0 text-body-sm text-body">Equipo fundador · Desde 2021</p>
+            <p class="m-0 text-body-sm text-body">Equipo fundador � Desde 2021</p>
           </div>
         </div>
       </section>
@@ -85,9 +85,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       <section class="container-max" data-testid="about-stats">
         <div class="impact-band">
           <div class="impact-copy">
-            <p class="m-0 text-body-sm font-semibold uppercase tracking-wider text-on-dark/70">Nuestro impacto</p>
-            <h2 class="m-0 text-display-xl font-bold">Comprar bien, <span class="text-accent">sin complicaciones</span></h2>
-            <p class="m-0 measure text-body-lg text-on-dark/80">
+            <p class="m-0 text-body-sm font-semibold uppercase tracking-wider text-on-brand/70">Nuestro impacto</p>
+            <h2 class="m-0 text-display-xl font-bold">Comprar bien, <span class="underline decoration-accent decoration-4 underline-offset-4">sin complicaciones</span></h2>
+            <p class="m-0 measure text-body-lg text-on-brand/80">
               Cada pedido es una promesa: productos seleccionados con cuidado, precios claros y
               una entrega puntual en la puerta de tu casa.
             </p>
@@ -104,7 +104,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         </div>
       </section>
 
-      <!-- Visión y misión -->
+      <!-- Visi�n y misi�n -->
       <section class="purpose-section">
         <div class="container-max about-purpose">
           <article class="purpose-card" data-testid="about-vision">
@@ -114,9 +114,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 <circle cx="12" cy="12" r="3" />
               </svg>
             </span>
-            <h3 class="m-0 mb-sm text-display-md font-bold text-ink">Nuestra visión</h3>
+            <h3 class="m-0 mb-sm text-display-md font-bold text-ink">Nuestra visi�n</h3>
             <p class="m-0 text-body-md text-body">
-              Ser la tienda en línea de referencia para las familias, reconocida por la cercanía,
+              Ser la tienda en l�nea de referencia para las familias, reconocida por la cercan�a,
               la confianza y la calidad de cada entrega.
             </p>
           </article>
@@ -129,9 +129,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 <circle cx="12" cy="12" r="1" />
               </svg>
             </span>
-            <h3 class="m-0 mb-sm text-display-md font-bold text-ink">Nuestra misión</h3>
+            <h3 class="m-0 mb-sm text-display-md font-bold text-ink">Nuestra misi�n</h3>
             <p class="m-0 text-body-md text-body">
-              Acercar los productos que necesitas cada día con una experiencia de compra simple,
+              Acercar los productos que necesitas cada d�a con una experiencia de compra simple,
               precios justos y entregas puntuales.
             </p>
           </article>
@@ -141,9 +141,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       <!-- Equipo -->
       <section class="container-max about-team" data-testid="about-team">
         <div class="team-heading">
-          <p class="m-0 text-body-sm font-semibold uppercase tracking-wider text-primary">Nuestro equipo</p>
-          <h2 class="m-0 text-balance text-display-xxl font-bold text-ink max-lg:text-display-xl">Conoce a las personas detrás de <span class="text-primary">{{ branding().brandName }}</span></h2>
-          <p class="m-0 text-body-lg text-body">Un equipo pequeño con una idea grande: hacer tus compras más fáciles.</p>
+          <p class="m-0 text-body-sm font-semibold uppercase tracking-wider text-link">Nuestro equipo</p>
+          <h2 class="m-0 text-balance text-display-xxl font-bold text-ink max-lg:text-display-xl">Conoce a las personas detr�s de <span class="text-link">{{ branding().brandName }}</span></h2>
+          <p class="m-0 text-body-lg text-body">Un equipo peque�o con una idea grande: hacer tus compras m�s f�ciles.</p>
         </div>
 
         <div class="team-grid">
@@ -176,15 +176,15 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       <section class="newsletter-section" data-testid="about-newsletter">
         <div class="newsletter-pattern" aria-hidden="true"></div>
         <div class="container-max newsletter-inner">
-          <p class="m-0 text-body-sm font-semibold uppercase tracking-wider text-primary">Novedades y ofertas</p>
-          <h2 class="m-0 newsletter-title text-balance text-display-xxl font-bold text-ink max-lg:text-display-xl">Suscríbete y recibe <span class="text-primary">ofertas exclusivas</span></h2>
+          <p class="m-0 text-body-sm font-semibold uppercase tracking-wider text-link">Novedades y ofertas</p>
+          <h2 class="m-0 newsletter-title text-balance text-display-xxl font-bold text-ink max-lg:text-display-xl">Suscr�bete y recibe <span class="text-link">ofertas exclusivas</span></h2>
           <p class="m-0 measure text-body-lg text-body">
-            Recibe un cupón de bienvenida y entérate de nuestras promociones antes que nadie.
+            Recibe un cup�n de bienvenida y ent�rate de nuestras promociones antes que nadie.
           </p>
 
           @if (!subscribed()) {
             <form class="newsletter-form" (submit)="subscribe($event)" novalidate>
-              <label for="newsletter-email" class="newsletter-label">Correo electrónico</label>
+              <label for="newsletter-email" class="newsletter-label">Correo electr�nico</label>
               <div class="newsletter-row">
                 <input
                   id="newsletter-email"
@@ -211,7 +211,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             </form>
           } @else {
             <p class="newsletter-success" role="status" data-testid="about-newsletter-success">
-              ¡Gracias por suscribirte! Pronto recibirás nuestras novedades.
+              �Gracias por suscribirte! Pronto recibir�s nuestras novedades.
             </p>
           }
         </div>
@@ -227,7 +227,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       max-width: 44rem;
     }
 
-    /* ─── Story ──────────────────────────────────── */
+    /* --- Story ------------------------------------ */
     .about-story {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
@@ -344,7 +344,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       object-fit: contain;
     }
 
-    /* ─── Impact band ────────────────────────────── */
+    /* --- Impact band ------------------------------ */
     .impact-band {
       position: relative;
       overflow: hidden;
@@ -353,8 +353,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       align-items: center;
       gap: calc(var(--spacing-3xl) * 1.5);
       padding: calc(var(--spacing-3xl) * 1.5);
-      background-color: var(--color-primary);
-      color: var(--color-on-dark);
+      background-color: var(--color-brand);
+      color: var(--color-on-brand);
       border-radius: var(--radius-xl);
     }
 
@@ -396,24 +396,24 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       gap: var(--spacing-xxs);
       padding: var(--spacing-lg);
       border-radius: var(--radius-lg);
-      background-color: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background-color: color-mix(in srgb, var(--color-on-brand) 8%, transparent);
+      border: 1px solid color-mix(in srgb, var(--color-on-brand) 12%, transparent);
     }
 
     .stat strong {
       font-size: var(--text-display-lg);
       line-height: var(--text-display-lg--line-height);
       font-weight: 700;
-      color: var(--color-on-dark);
+      color: var(--color-on-brand);
     }
 
     .stat span {
       font-size: var(--text-body-sm);
       line-height: var(--text-body-sm--line-height);
-      color: color-mix(in srgb, var(--color-on-dark) 75%, transparent);
+      color: color-mix(in srgb, var(--color-on-brand) 75%, transparent);
     }
 
-    /* ─── Purpose ────────────────────────────────── */
+    /* --- Purpose ---------------------------------- */
     .purpose-section {
       margin-top: calc(var(--spacing-3xl) * 2);
       padding: calc(var(--spacing-3xl) * 2) 0;
@@ -449,7 +449,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       height: 24px;
     }
 
-    /* ─── Team ───────────────────────────────────── */
+    /* --- Team ------------------------------------- */
     .about-team {
       padding-top: calc(var(--spacing-3xl) * 2);
       padding-bottom: calc(var(--spacing-3xl) * 2);
@@ -505,13 +505,13 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       border-radius: var(--radius-full);
       background-color: var(--color-canvas);
       border: 1px solid var(--color-surface-pressed);
-      color: var(--color-primary);
+      color: var(--color-link);
       font-size: var(--text-display-xl);
       font-weight: 700;
       letter-spacing: 0.04em;
     }
 
-    /* ─── Benefits ───────────────────────────────── */
+    /* --- Benefits --------------------------------- */
     .about-benefits {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -532,7 +532,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       flex-shrink: 0;
     }
 
-    /* ─── Newsletter ─────────────────────────────── */
+    /* --- Newsletter ------------------------------- */
     .newsletter-section {
       position: relative;
       overflow: hidden;
@@ -645,7 +645,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       color: var(--color-ink);
     }
 
-    /* ─── Responsive ─────────────────────────────── */
+    /* --- Responsive ------------------------------- */
     @media (max-width: 1024px) {
       .about-story {
         gap: var(--spacing-3xl);
@@ -743,13 +743,13 @@ export class About implements OnInit {
 
   protected readonly breadcrumbs: Breadcrumb[] = [
     { label: 'Inicio', link: '/' },
-    { label: 'Quiénes somos' },
+    { label: 'Qui�nes somos' },
   ];
 
   protected readonly storyImages: StoryImage[] = [
     {
       src: 'https://d8j0ntlcm91z4.cloudfront.net/user_3HjzMlbE9jkpU7f4oQWQ5CL4M82/hf_20260908_215319_75c6644f-b471-456c-84cd-f6c66ac9d5b9.png',
-      alt: 'Selección de productos de Tu Mercadito',
+      alt: 'Selecci�n de productos de Tu Mercadito',
     },
     {
       src: 'https://d8j0ntlcm91z4.cloudfront.net/user_3HjzMlbE9jkpU7f4oQWQ5CL4M82/hf_20260908_215319_0c90fb36-d783-4c9c-ae9b-c7d0d97a030b.png',
@@ -757,52 +757,52 @@ export class About implements OnInit {
     },
     {
       src: 'https://d8j0ntlcm91z4.cloudfront.net/user_3HjzMlbE9jkpU7f4oQWQ5CL4M82/hf_20260908_215225_538a0db6-7afb-41fc-a207-924be258ebfd.png',
-      alt: 'Ropa básica disponible en Tu Mercadito',
+      alt: 'Ropa b�sica disponible en Tu Mercadito',
     },
     {
       src: 'https://d8j0ntlcm91z4.cloudfront.net/user_3HjzMlbE9jkpU7f4oQWQ5CL4M82/hf_20260908_215319_2da8ec51-fdf1-4ed8-931a-5bc65340c248.png',
-      alt: 'Artículos para el hogar de Tu Mercadito',
+      alt: 'Art�culos para el hogar de Tu Mercadito',
     },
   ];
 
   protected readonly highlights: string[] = [
     'Productos verificados y de marcas confiables',
-    'Entregas rápidas en la puerta de tu casa',
-    'Atención cercana antes, durante y después de tu compra',
+    'Entregas r�pidas en la puerta de tu casa',
+    'Atenci�n cercana antes, durante y despu�s de tu compra',
   ];
 
   private readonly productCount = signal<number | null>(null);
   private readonly categoryCount = signal<number | null>(null);
 
   protected readonly stats = computed<Stat[]>(() => [
-    { value: '+5', label: 'años de experiencia' },
+    { value: '+5', label: 'a�os de experiencia' },
     { value: this.formatCount(this.productCount()), label: 'productos disponibles' },
-    { value: this.formatCount(this.categoryCount()), label: 'categorías de productos' },
+    { value: this.formatCount(this.categoryCount()), label: 'categor�as de productos' },
     { value: '98%', label: 'clientes satisfechos' },
   ]);
 
   protected readonly team: TeamMember[] = [
-    { name: 'María González', role: 'Fundadora & CEO', initials: 'MG' },
-    { name: 'Carlos Pérez', role: 'Gerente de operaciones', initials: 'CP' },
-    { name: 'Ana Rodríguez', role: 'Atención al cliente', initials: 'AR' },
-    { name: 'Luis Martínez', role: 'Logística y entregas', initials: 'LM' },
+    { name: 'Mar�a Gonz�lez', role: 'Fundadora & CEO', initials: 'MG' },
+    { name: 'Carlos P�rez', role: 'Gerente de operaciones', initials: 'CP' },
+    { name: 'Ana Rodr�guez', role: 'Atenci�n al cliente', initials: 'AR' },
+    { name: 'Luis Mart�nez', role: 'Log�stica y entregas', initials: 'LM' },
   ];
 
   protected readonly benefits: Benefit[] = [
     {
       icon: '/assets/icons/box.png',
-      title: 'Envío gratis',
+      title: 'Env�o gratis',
       text: 'En pedidos mayores a $50',
     },
     {
       icon: '/assets/icons/bills.png',
       title: 'Pago flexible',
-      text: 'Múltiples opciones seguras',
+      text: 'M�ltiples opciones seguras',
     },
     {
       icon: '/assets/icons/support.png',
       title: 'Soporte 24/7',
-      text: 'Te acompañamos todos los días',
+      text: 'Te acompa�amos todos los d�as',
     },
   ];
 
@@ -824,7 +824,7 @@ export class About implements OnInit {
   }
 
   private formatCount(count: number | null): string {
-    return count === null ? '—' : count.toLocaleString('es-VE');
+    return count === null ? '�' : count.toLocaleString('es-VE');
   }
 
   protected onEmailInput(event: Event): void {
@@ -838,7 +838,7 @@ export class About implements OnInit {
     const email = this.email().trim();
 
     if (!EMAIL_PATTERN.test(email)) {
-      this.error.set('Ingresa un correo electrónico válido.');
+      this.error.set('Ingresa un correo electr�nico v�lido.');
       return;
     }
 

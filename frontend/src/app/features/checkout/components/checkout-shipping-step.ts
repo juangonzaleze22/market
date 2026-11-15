@@ -348,7 +348,7 @@ import { CheckoutStore } from '../checkout-store';
       background: none;
       font-size: var(--text-body-sm-strong);
       font-weight: 600;
-      color: var(--color-primary);
+      color: var(--color-link);
       cursor: pointer;
       text-decoration: none;
     }
@@ -405,8 +405,9 @@ import { CheckoutStore } from '../checkout-store';
     }
 
     .address-card.has-map {
-      grid-template-columns: auto minmax(0, 1fr) 180px auto;
-      grid-template-areas: 'radio body map badge';
+      grid-template-columns: 200px auto minmax(0, 1fr) auto;
+      grid-template-areas: 'map radio body badge';
+      padding: 0 var(--spacing-lg) 0 0;
     }
 
     .address-card:hover {
@@ -491,16 +492,16 @@ import { CheckoutStore } from '../checkout-store';
       background-color: color-mix(in srgb, var(--color-primary) 12%, var(--color-canvas));
       font-size: var(--text-caption);
       font-weight: 600;
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .address-card-map {
       grid-area: map;
-      width: 180px;
-      height: 104px;
+      align-self: stretch;
+      width: 200px;
+      min-height: 112px;
       overflow: hidden;
-      border: 1px solid var(--color-surface-pressed);
-      border-radius: var(--radius-lg);
+      border-right: 1px solid var(--color-surface-pressed);
       cursor: default;
     }
 
@@ -529,7 +530,7 @@ import { CheckoutStore } from '../checkout-store';
 
     .address-add-card:hover {
       border-color: var(--color-primary);
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .address-add-icon {
@@ -563,7 +564,7 @@ import { CheckoutStore } from '../checkout-store';
 
     .checkout-address-empty:hover {
       border-color: var(--color-primary);
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .address-form {
@@ -576,14 +577,19 @@ import { CheckoutStore } from '../checkout-store';
       .address-card.has-map {
         grid-template-columns: auto minmax(0, 1fr) auto;
         grid-template-areas:
-          'radio body badge'
-          'map map map';
+          'map map map'
+          'radio body badge';
+        row-gap: 0;
+        padding: 0 var(--spacing-lg) var(--spacing-md);
       }
 
       .address-card-map {
         width: 100%;
         height: 132px;
-        margin-top: var(--spacing-sm);
+        min-height: 0;
+        margin-bottom: var(--spacing-md);
+        border-right: 0;
+        border-bottom: 1px solid var(--color-surface-pressed);
       }
     }
 
@@ -609,10 +615,6 @@ export class CheckoutShippingStep {
   protected readonly store = inject(CheckoutStore);
 
   protected showMap(address: Address): boolean {
-    return (
-      this.store.selectedAddressId() === address.id &&
-      address.latitude !== null &&
-      address.longitude !== null
-    );
+    return address.latitude !== null && address.longitude !== null;
   }
 }

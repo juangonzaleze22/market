@@ -86,7 +86,7 @@ import { Component } from '@angular/core';
       place-items: center;
       border-radius: var(--radius-full);
       background-color: var(--color-canvas-soft);
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .trust-icon svg {

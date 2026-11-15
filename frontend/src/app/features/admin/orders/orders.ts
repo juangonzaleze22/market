@@ -112,18 +112,18 @@ interface ModalStep {
           class="bg-canvas rounded-xl border border-surface-pressed overflow-hidden max-md:hidden"
         >
           <div
-            class="grid grid-cols-12 gap-4 bg-accent text-white rounded-t-xl px-lg py-3 font-semibold text-body-sm"
+            class="grid grid-cols-12 gap-4 bg-accent text-on-accent rounded-t-xl px-lg py-3 font-semibold text-body-sm"
             data-testid="orders-table-header"
           >
             <div
-              class="col-span-2 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-2 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('orderNumber')"
               data-testid="sort-orderNumber"
             >
               Pedido{{ sortIcon('orderNumber') }}
             </div>
             <div
-              class="col-span-2 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-2 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('status')"
               data-testid="sort-status"
             >
@@ -131,14 +131,14 @@ interface ModalStep {
             </div>
             <div class="col-span-2">Flujo</div>
             <div
-              class="col-span-2 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-2 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('totalAmount')"
               data-testid="sort-totalAmount"
             >
               Total{{ sortIcon('totalAmount') }}
             </div>
             <div
-              class="col-span-2 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
+              class="col-span-2 cursor-pointer select-none hover:bg-on-accent/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('createdAt')"
               data-testid="sort-createdAt"
             >
@@ -382,7 +382,7 @@ interface ModalStep {
                 <div class="flex items-center justify-between mb-xl">
                   <h3 class="text-body-sm-strong">Estado del Pedido</h3>
                   @if (isSavingStatus()) {
-                    <span class="btn-spinner text-primary" data-testid="status-spinner"></span>
+                    <span class="btn-spinner text-link" data-testid="status-spinner"></span>
                   }
                 </div>
                 <div class="modal-timeline">
@@ -598,7 +598,7 @@ interface ModalStep {
                 <div class="flex justify-end mb-sm">
                   <button
                     type="button"
-                    class="inline-flex items-center gap-xs text-body-sm font-medium text-primary hover:underline"
+                    class="inline-flex items-center gap-xs text-body-sm font-medium text-link hover:underline"
                     (click)="openChat(order.id)"
                     data-testid="open-chat-detail"
                   >
@@ -915,7 +915,7 @@ interface ModalStep {
     :host ::ng-deep .modal-timeline-step.active .modal-step-icon {
       background-color: var(--color-canvas);
       border-color: var(--color-primary);
-      color: var(--color-primary);
+      color: var(--color-link);
       position: relative;
     }
 
@@ -969,7 +969,7 @@ interface ModalStep {
     }
 
     :host ::ng-deep .modal-timeline-step.clickable:hover .modal-step-label {
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .order-info-grid {

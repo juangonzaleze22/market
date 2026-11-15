@@ -35,7 +35,11 @@ test.describe('Dashboard de Usuario', () => {
     }
   });
 
-  test('muestra link Mi Cuenta en el dropdown del perfil', async ({ page }) => {
+  test('muestra link Mi Cuenta en el dropdown del perfil', async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, 'en mobile la cuenta se navega desde la página de perfil');
     await page.click('[data-testid="profile-button"]');
     await expect(page.locator('[data-testid="profile-dropdown"]')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('[data-testid="profile-account"]')).toBeVisible();
@@ -104,5 +108,30 @@ test.describe('Perfil mobile', () => {
     await expect(page.locator('[data-testid="page-hero-title"]')).toHaveText(
       'Quiénes somos',
     );
+  });
+
+  test('menú mobile muestra las rutas de la cuenta', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'solo mobile');
+
+    await page.goto('/account');
+    const menu = page.locator('[data-testid="mobile-more-menu"]');
+    await expect(menu).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="mobile-more-orders"]')).toBeVisible();
+    await expect(page.locator('[data-testid="mobile-more-addresses"]')).toBeVisible();
+    await expect(page.locator('[data-testid="mobile-more-favorites"]')).toBeVisible();
+    await expect(page.locator('[data-testid="mobile-more-notifications"]')).toBeVisible();
+    await expect(page.locator('[data-testid="mobile-more-logout"]')).toBeVisible();
+    await expect(page.locator('[data-testid="profile-button"]')).toBeHidden();
+  });
+
+  test('el header mobile no muestra el acceso al perfil', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'solo mobile');
+
+    await page.goto('/account');
+    await expect(page.locator('[data-testid="user-dashboard"]')).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(page.locator('[data-testid="profile-button"]')).toBeHidden();
+    await expect(page.locator('[data-testid="bottom-profile-link"]')).toBeVisible();
   });
 });

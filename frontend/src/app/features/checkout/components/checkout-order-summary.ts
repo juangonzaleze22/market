@@ -260,7 +260,7 @@ import { CheckoutStore } from '../checkout-store';
     }
 
     .checkout-summary-row-value.is-primary {
-      color: var(--color-primary);
+      color: var(--color-link);
     }
 
     .checkout-summary-total {

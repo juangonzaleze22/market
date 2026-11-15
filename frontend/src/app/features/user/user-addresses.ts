@@ -38,9 +38,9 @@ import { environment } from '../../../environments/environment';
       } @else {
         <!-- Breadcrumb -->
         <div class="flex items-center gap-sm text-body-sm text-body mb-lg">
-          <a routerLink="/" class="hover:text-primary transition">Inicio</a>
+          <a routerLink="/" class="hover:text-link transition">Inicio</a>
           <span>/</span>
-          <a routerLink="/account" class="hover:text-primary transition">Mi Cuenta</a>
+          <a routerLink="/account" class="hover:text-link transition">Mi Cuenta</a>
           <span>/</span>
           <span class="text-ink font-medium">Direcciones</span>
         </div>
@@ -110,7 +110,7 @@ import { environment } from '../../../environments/environment';
                   <div class="flex items-start justify-between gap-xs mb-xs sm:mb-md">
                     <div class="flex items-center gap-sm min-w-0 flex-1">
                       <span class="max-sm:hidden sm:grid w-9 h-9 rounded-lg bg-canvas-softer place-items-center shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-link)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"></path>
                           <circle cx="12" cy="10" r="3"></circle>
                         </svg>
@@ -120,7 +120,7 @@ import { environment } from '../../../environments/environment';
                           {{ addr.label || 'Dirección' }}
                         </p>
                         @if (addr.isDefault) {
-                          <span class="inline-block bg-primary/10 text-primary text-caption font-medium px-2 py-0.5 rounded-full mt-xxs" data-testid="address-default-badge">
+                          <span class="inline-block bg-primary/10 text-link text-caption font-medium px-2 py-0.5 rounded-full mt-xxs" data-testid="address-default-badge">
                             Principal
                           </span>
                         }
@@ -167,7 +167,7 @@ import { environment } from '../../../environments/environment';
                           @if (!addr.isDefault) {
                             <button
                               type="button"
-                              class="flex w-full items-center gap-sm px-md py-sm text-body-sm font-medium text-primary hover:bg-canvas-soft transition text-left"
+                              class="flex w-full items-center gap-sm px-md py-sm text-body-sm font-medium text-link hover:bg-canvas-soft transition text-left"
                               (click)="setDefault(addr); closeMenu()"
                               data-testid="address-set-default"
                             >
@@ -205,7 +205,7 @@ import { environment } from '../../../environments/environment';
                   <div class="flex max-sm:hidden flex-wrap items-center gap-sm pt-lg mt-lg border-t border-surface-pressed">
                     <button
                       type="button"
-                      class="flex items-center gap-xs text-body-sm font-medium text-ink px-md py-sm rounded-full border border-surface-pressed hover:border-primary hover:text-primary transition"
+                      class="flex items-center gap-xs text-body-sm font-medium text-ink px-md py-sm rounded-full border border-surface-pressed hover:border-primary hover:text-link transition"
                       (click)="openEdit(addr)"
                       data-testid="address-edit-btn"
                     >
@@ -231,7 +231,7 @@ import { environment } from '../../../environments/environment';
                     @if (!addr.isDefault) {
                       <button
                         type="button"
-                        class="ml-auto text-body-sm font-medium text-primary hover:underline"
+                        class="ml-auto text-body-sm font-medium text-link hover:underline"
                         (click)="setDefault(addr)"
                         data-testid="address-set-default-btn"
                       >
@@ -317,7 +317,7 @@ import { environment } from '../../../environments/environment';
               <div>
                 <label class="form-label">Ubicación en mapa <span class="optional">(Opcional)</span></label>
                 <button type="button"
-                  class="w-full border-2 border-dashed border-surface-pressed rounded-xl py-lg text-body-sm-strong hover:border-primary hover:text-primary transition"
+                  class="w-full border-2 border-dashed border-surface-pressed rounded-xl py-lg text-body-sm-strong hover:border-primary hover:text-link transition"
                   (click)="mapPicker.open()"
                   data-testid="address-form-map"
                 >
