@@ -25,6 +25,8 @@ erDiagram
     PRODUCT ||--o{ FAVORITE : favorited_in
     PRODUCT ||--o{ ORDER_ITEM : included_in
     PRODUCT }|--|{ TAG : tagged_with
+    COLLECTION ||--o{ COLLECTION_PRODUCT : contains
+    PRODUCT ||--o{ COLLECTION_PRODUCT : listed_in
     ORDER ||--|{ ORDER_ITEM : contains
     ORDER ||--o| PAYMENT : has
     RECURRING_EXPENSE ||--o{ EXPENSE : generates
@@ -138,6 +140,29 @@ erDiagram
         varchar slug UK
         varchar color
         timestamp created_at
+    }
+
+    COLLECTION {
+        uuid id PK
+        varchar title
+        varchar slug UK
+        varchar subtitle
+        varchar image_url
+        text[] placements "home|shop"
+        integer max_items
+        integer sort_order
+        boolean is_active
+        timestamp starts_at
+        timestamp ends_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    COLLECTION_PRODUCT {
+        uuid id PK
+        uuid collection_id FK
+        uuid product_id FK
+        integer position
     }
 
     CART_ITEM {
@@ -347,6 +372,35 @@ Tabla intermedia para relación Many-to-Many entre productos y tags.
 | `productId` | `uuid` | FK al producto |
 | `tagId` | `uuid` | FK al tag |
 
+### `collections`
+Secciones de merchandising curadas (ej. "Esencial en tu Despensa", "Navidad"). No son categorías: agrupan productos de distintas categorías con un orden manual y visibilidad programable.
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | `uuid` | Identificador único |
+| `title` | `varchar` | Título visible de la sección |
+| `slug` | `varchar` | URL amigable (único) |
+| `subtitle` | `varchar` | Texto secundario opcional |
+| `image_url` | `varchar` | Cover para la rail del shop |
+| `placements` | `text[]` | Dónde se muestra: `home`, `shop` |
+| `max_items` | `integer` | Máximo de productos en el home (4–24) |
+| `sort_order` | `integer` | Orden de las secciones |
+| `is_active` | `boolean` | Visible en tienda |
+| `starts_at` / `ends_at` | `timestamp` | Ventana de vigencia opcional |
+| `created_at` / `updated_at` | `timestamp` | Auditoría |
+
+### `collection_products`
+Productos de una colección manual, con su posición curada.
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | `uuid` | Identificador único |
+| `collection_id` | `uuid` | FK a la colección |
+| `product_id` | `uuid` | FK al producto |
+| `position` | `integer` | Orden dentro de la sección (0..n-1) |
+
+> **Restricción:** `(collection_id, product_id)` es único. Al borrar la colección o el producto, la fila se elimina en cascada.
+
 ### `cart_items`
 Items del carrito de compras por usuario.
 
@@ -483,6 +537,8 @@ Direcciones de envío de los usuarios.
 | `products` → `favorites` | 1:N | Un producto puede ser favorito de muchos usuarios |
 | `products` → `order_items` | 1:N | Un producto puede estar en muchos pedidos |
 | `products` ↔ `tags` | M:N | Un producto puede tener múltiples tags y viceversa |
+| `collections` → `collection_products` | 1:N | Una colección agrupa varios productos |
+| `products` → `collection_products` | 1:N | Un producto puede aparecer en varias colecciones |
 | `orders` → `order_items` | 1:N | Un pedido tiene varios items |
 | `orders` → `payments` | 1:1 | Un pedido tiene un pago asociado |
 | `users` → `orders` | 1:N | Un usuario de bodega puede preparar muchos pedidos (`prepared_by_id`) |

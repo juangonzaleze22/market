@@ -1,4 +1,11 @@
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  effect,
+  HostListener,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -15,13 +22,14 @@ import {
 } from '../../core/services/branch.service';
 import { ToastService } from '../../core/services/toast.service';
 import { MapPicker } from '../../shared/ui/map-picker';
+import { MapPreviewComponent } from '../../shared/ui/map-preview';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-user-addresses',
-  imports: [RouterLink, FormsModule, MapPicker],
+  imports: [RouterLink, FormsModule, MapPicker, MapPreviewComponent],
   template: `
-    <section class="py-3xl max-w-[72rem] mx-auto px-lg" data-testid="addresses-page">
+    <section class="pt-3xl pb-24 md:pb-3xl max-w-[72rem] mx-auto px-lg" data-testid="addresses-page">
       @if (!auth.isAuthed()) {
         <div class="bg-canvas rounded-xl p-3xl text-center border border-surface-pressed">
           <p class="text-body-lg mb-xl">Iniciá sesión para gestionar tus direcciones</p>
@@ -60,7 +68,7 @@ import { environment } from '../../../environments/environment';
         </div>
 
         @if (loading()) {
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
             <div class="h-40 bg-canvas-softer rounded-xl animate-pulse"></div>
             <div class="h-40 bg-canvas-softer rounded-xl animate-pulse"></div>
           </div>
@@ -80,80 +88,157 @@ import { environment } from '../../../environments/environment';
             <button type="button" class="btn-primary" (click)="openCreate()">Agregar dirección</button>
           </div>
         } @else {
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-lg" data-testid="addresses-list">
+          <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-2 gap-md sm:gap-lg" data-testid="addresses-list">
             @for (addr of addresses(); track addr.id) {
               <article
-                class="bg-canvas rounded-xl border p-2xl flex flex-col"
+                class="relative bg-canvas rounded-xl border flex flex-col sm:flex-row"
                 [class.border-primary]="addr.isDefault"
                 [class.border-surface-pressed]="!addr.isDefault"
                 data-testid="address-card"
               >
-                <div class="flex items-start justify-between gap-md mb-md">
-                  <div class="flex items-center gap-sm min-w-0">
-                    <span class="w-9 h-9 rounded-lg bg-canvas-softer grid place-items-center shrink-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                      </svg>
-                    </span>
-                    <div class="min-w-0">
-                      <p class="text-body-md-strong font-semibold truncate" data-testid="address-card-label">
-                        {{ addr.label || 'Dirección' }}
-                      </p>
-                      @if (addr.isDefault) {
-                        <span class="inline-block bg-primary/10 text-primary text-caption font-medium px-2 py-0.5 rounded-full mt-xxs" data-testid="address-default-badge">
-                          Principal
-                        </span>
+                <div
+                  class="w-full sm:w-44 h-28 sm:h-auto shrink-0 overflow-hidden border-b sm:border-b-0 sm:border-r border-surface-pressed bg-canvas-soft rounded-tl-xl rounded-tr-xl sm:rounded-tr-none sm:rounded-bl-xl"
+                  data-testid="address-card-map"
+                >
+                  <app-map-preview
+                    [latitude]="addr.latitude"
+                    [longitude]="addr.longitude"
+                  />
+                </div>
+
+                <div class="flex flex-col flex-1 min-w-0 p-md sm:p-xl">
+                  <div class="flex items-start justify-between gap-xs mb-xs sm:mb-md">
+                    <div class="flex items-center gap-sm min-w-0 flex-1">
+                      <span class="max-sm:hidden sm:grid w-9 h-9 rounded-lg bg-canvas-softer place-items-center shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"></path>
+                          <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                      </span>
+                      <div class="min-w-0">
+                        <p class="text-body-sm sm:text-body-md-strong font-semibold truncate" data-testid="address-card-label">
+                          {{ addr.label || 'Dirección' }}
+                        </p>
+                        @if (addr.isDefault) {
+                          <span class="inline-block bg-primary/10 text-primary text-caption font-medium px-2 py-0.5 rounded-full mt-xxs" data-testid="address-default-badge">
+                            Principal
+                          </span>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="relative shrink-0 sm:hidden">
+                      <button
+                        type="button"
+                        class="w-8 h-8 grid place-items-center rounded-full text-ink hover:bg-canvas-soft transition"
+                        (click)="toggleMenu(addr.id, $event)"
+                        aria-label="Acciones de la dirección"
+                        data-testid="address-actions"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                          <circle cx="12" cy="5" r="1.8"></circle>
+                          <circle cx="12" cy="12" r="1.8"></circle>
+                          <circle cx="12" cy="19" r="1.8"></circle>
+                        </svg>
+                      </button>
+
+                      @if (menuOpenId() === addr.id) {
+                        <div
+                          class="absolute right-0 w-44 bg-canvas border border-surface-pressed rounded-xl shadow-lg py-xs z-40"
+                          [class.top-full]="!menuUp()"
+                          [class.mt-xs]="!menuUp()"
+                          [class.bottom-full]="menuUp()"
+                          [class.mb-xs]="menuUp()"
+                          (click)="$event.stopPropagation()"
+                          data-testid="address-menu"
+                        >
+                          <button
+                            type="button"
+                            class="flex w-full items-center gap-sm px-md py-sm text-body-sm font-medium text-ink hover:bg-canvas-soft transition text-left"
+                            (click)="openEdit(addr); closeMenu()"
+                            data-testid="address-edit"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M12 20h9"></path>
+                              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                            </svg>
+                            Editar
+                          </button>
+                          @if (!addr.isDefault) {
+                            <button
+                              type="button"
+                              class="flex w-full items-center gap-sm px-md py-sm text-body-sm font-medium text-primary hover:bg-canvas-soft transition text-left"
+                              (click)="setDefault(addr); closeMenu()"
+                              data-testid="address-set-default"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                              </svg>
+                              Hacer principal
+                            </button>
+                          }
+                          <div class="my-xs h-px bg-surface-pressed"></div>
+                          <button
+                            type="button"
+                            class="flex w-full items-center gap-sm px-md py-sm text-body-sm font-medium text-red-600 hover:bg-red-50 transition text-left"
+                            (click)="requestDelete(addr); closeMenu()"
+                            data-testid="address-delete"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <polyline points="3 6 5 6 21 6"></polyline>
+                              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                              <path d="M10 11v6M14 11v6"></path>
+                            </svg>
+                            Eliminar
+                          </button>
+                        </div>
                       }
                     </div>
                   </div>
-                </div>
 
-                <div class="text-body-sm text-body space-y-xxs flex-1">
-                  <p class="text-ink font-medium" data-testid="address-card-street">{{ addr.street }}</p>
-                  <p>{{ addr.city }}, {{ addr.state }} {{ addr.zipCode }}</p>
-                  <p>{{ addr.country }}</p>
-                  @if (addr.latitude && addr.longitude) {
-                    <p class="text-caption text-mute flex items-center gap-xxs mt-xs">📍 Ubicación en mapa guardada</p>
-                  }
-                </div>
+                  <div class="text-body-xs sm:text-body-sm text-body space-y-xxs flex-1 min-w-0">
+                    <p class="text-ink font-medium truncate" data-testid="address-card-street">{{ addr.street }}</p>
+                    <p class="truncate">{{ addr.city }}, {{ addr.state }}</p>
+                    <p class="max-sm:hidden">{{ addr.zipCode }} · {{ addr.country }}</p>
+                  </div>
 
-                <div class="flex items-center gap-sm pt-lg mt-lg border-t border-surface-pressed">
-                  <button
-                    type="button"
-                    class="flex items-center gap-xs text-body-sm font-medium text-ink px-md py-sm rounded-full border border-surface-pressed hover:border-primary hover:text-primary transition"
-                    (click)="openEdit(addr)"
-                    data-testid="address-edit"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M12 20h9"></path>
-                      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
-                    </svg>
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    class="flex items-center gap-xs text-body-sm font-medium text-red-600 px-md py-sm rounded-full border border-red-200 hover:border-red-500 transition"
-                    (click)="requestDelete(addr)"
-                    data-testid="address-delete"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="3 6 5 6 21 6"></polyline>
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                      <path d="M10 11v6M14 11v6"></path>
-                    </svg>
-                    Eliminar
-                  </button>
-                  @if (!addr.isDefault) {
+                  <div class="flex max-sm:hidden flex-wrap items-center gap-sm pt-lg mt-lg border-t border-surface-pressed">
                     <button
                       type="button"
-                      class="ml-auto text-body-sm font-medium text-primary hover:underline"
-                      (click)="setDefault(addr)"
-                      data-testid="address-set-default"
+                      class="flex items-center gap-xs text-body-sm font-medium text-ink px-md py-sm rounded-full border border-surface-pressed hover:border-primary hover:text-primary transition"
+                      (click)="openEdit(addr)"
+                      data-testid="address-edit-btn"
                     >
-                      Hacer principal
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                      </svg>
+                      Editar
                     </button>
-                  }
+                    <button
+                      type="button"
+                      class="flex items-center gap-xs text-body-sm font-medium text-red-600 px-md py-sm rounded-full border border-red-200 hover:border-red-500 transition"
+                      (click)="requestDelete(addr)"
+                      data-testid="address-delete-btn"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                        <path d="M10 11v6M14 11v6"></path>
+                      </svg>
+                      Eliminar
+                    </button>
+                    @if (!addr.isDefault) {
+                      <button
+                        type="button"
+                        class="ml-auto text-body-sm font-medium text-primary hover:underline"
+                        (click)="setDefault(addr)"
+                        data-testid="address-set-default-btn"
+                      >
+                        Hacer principal
+                      </button>
+                    }
+                  </div>
                 </div>
               </article>
             }
@@ -324,6 +409,8 @@ export class UserAddresses implements OnInit {
   readonly formOpen = signal(false);
   readonly editingId = signal<string | null>(null);
   readonly deletingId = signal<string | null>(null);
+  readonly menuOpenId = signal<string | null>(null);
+  readonly menuUp = signal(false);
   readonly submitted = signal(false);
 
   readonly form = {
@@ -361,6 +448,7 @@ export class UserAddresses implements OnInit {
   }
 
   openCreate(): void {
+    this.closeMenu();
     this.resetForm();
     this.editingId.set(null);
     this.submitted.set(false);
@@ -368,6 +456,7 @@ export class UserAddresses implements OnInit {
   }
 
   openEdit(address: Address): void {
+    this.closeMenu();
     this.editingId.set(address.id);
     this.submitted.set(false);
     this.form.label = address.label ?? '';
@@ -451,6 +540,31 @@ export class UserAddresses implements OnInit {
         );
       },
     });
+  }
+
+  toggleMenu(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.menuOpenId() === id) {
+      this.menuOpenId.set(null);
+      return;
+    }
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.menuUp.set(window.innerHeight - rect.bottom < 240);
+    this.menuOpenId.set(id);
+  }
+
+  closeMenu(): void {
+    this.menuOpenId.set(null);
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.closeMenu();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeMenu();
   }
 
   requestDelete(address: Address): void {

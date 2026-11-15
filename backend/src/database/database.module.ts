@@ -18,6 +18,8 @@ import { SiteSettings } from './entities/site-settings.entity.js';
 import { Tag } from './entities/tag.entity.js';
 import { FlashSale } from './entities/flash-sale.entity.js';
 import { FlashSaleItem } from './entities/flash-sale-item.entity.js';
+import { Collection } from './entities/collection.entity.js';
+import { CollectionProduct } from './entities/collection-product.entity.js';
 import { OrderMessage } from './entities/order-message.entity.js';
 import { Notification } from './entities/notification.entity.js';
 import { Expense } from './entities/expense.entity.js';
@@ -25,7 +27,7 @@ import { RecurringExpense } from './entities/recurring-expense.entity.js';
 import { StockSubscription } from './entities/stock-subscription.entity.js';
 import { SeedService } from './seeders/seed.service.js';
 
-const entities = [User, Category, Product, Tag, CartItem, Favorite, Order, OrderItem, Address, Branch, DeliveryZone, BranchProductStock, Banner, BannerSettings, SiteSettings, FlashSale, FlashSaleItem, OrderMessage, Notification, Expense, RecurringExpense, StockSubscription];
+const entities = [User, Category, Product, Tag, CartItem, Favorite, Order, OrderItem, Address, Branch, DeliveryZone, BranchProductStock, Banner, BannerSettings, SiteSettings, FlashSale, FlashSaleItem, Collection, CollectionProduct, OrderMessage, Notification, Expense, RecurringExpense, StockSubscription];
 
 @Module({
   imports: [

@@ -1,4 +1,13 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, signal, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  ViewChild,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { TopBanner } from './shared/layout/top-banner';
@@ -10,12 +19,14 @@ import { BranchSwitcher } from './shared/layout/branch-switcher';
 import { CartDrawer } from './shared/ui/cart-drawer';
 import { AuthModalComponent } from './shared/ui/auth-modal';
 import { ToastComponent } from './shared/ui/toast';
+import { ScrollToTop } from './shared/ui/scroll-to-top';
+import { ChatWidget } from './shared/ui/chat-widget';
 import { ChatService } from './core/services/chat.service';
 import { NotificationsService } from './core/services/notifications.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TopBanner, Header, Navbar, Footer, BottomNav, BranchSwitcher, CartDrawer, AuthModalComponent, ToastComponent],
+  imports: [RouterOutlet, TopBanner, Header, Navbar, Footer, BottomNav, BranchSwitcher, CartDrawer, AuthModalComponent, ToastComponent, ScrollToTop, ChatWidget],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -29,23 +40,72 @@ export class App implements AfterViewInit, OnDestroy {
   private navSub?: ReturnType<typeof this.router.events.subscribe>;
 
   protected readonly headerHeight = signal(0);
-  protected readonly hideShell = signal(App.isShellHidden(this.router.url));
+  protected readonly currentUrl = signal(App.initialPath(this.router.url));
+  private readonly mobileQuery = App.mobileMediaQuery();
+  protected readonly isMobileViewport = signal(this.mobileQuery?.matches ?? false);
 
-  private static isShellHidden(url: string): boolean {
+  protected readonly hideShell = computed(() => {
+    const url = this.currentUrl();
+    if (App.isAlwaysHidden(url)) return true;
+    return this.isMobileViewport() && App.isCheckout(url);
+  });
+
+  protected readonly hideBottomNav = computed(
+    () => this.hideShell() || App.isCheckout(this.currentUrl()),
+  );
+
+  private readonly onMobileChange = (event: MediaQueryListEvent) => {
+    this.isMobileViewport.set(event.matches);
+  };
+
+  private lastPath = App.initialPath(this.router.url).split('?')[0];
+
+  private static initialPath(fallback: string): string {
+    if (typeof window === 'undefined') return fallback;
+    return `${window.location.pathname}${window.location.search}`;
+  }
+
+  private static mobileMediaQuery(): MediaQueryList | null {
+    if (typeof window === 'undefined') return null;
+    return window.matchMedia('(max-width: 767px)');
+  }
+
+  private static pathOf(url: string): string {
+    return url.split('?')[0];
+  }
+
+  private static isAlwaysHidden(url: string): boolean {
+    const path = App.pathOf(url);
     return (
-      url.startsWith('/admin') ||
-      url.startsWith('/warehouse') ||
-      url.startsWith('/delivery')
+      path.startsWith('/admin') ||
+      path.startsWith('/warehouse') ||
+      path.startsWith('/delivery')
     );
   }
 
+  private static isCheckout(url: string): boolean {
+    const path = App.pathOf(url);
+    return path === '/checkout' || path.startsWith('/checkout/');
+  }
+
   constructor() {
+    this.mobileQuery?.addEventListener('change', this.onMobileChange);
+
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe((e) => {
-        this.hideShell.set(App.isShellHidden(e.urlAfterRedirects));
+        const path = e.urlAfterRedirects.split('?')[0];
+        const pathChanged = path !== this.lastPath;
+        this.lastPath = path;
+
+        this.currentUrl.set(e.urlAfterRedirects);
         setTimeout(() => this.syncHeaderHeight());
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Solo volver al inicio cuando cambia de página; los cambios de
+        // filtros (query params) conservan la posición del scroll.
+        if (pathChanged) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       });
   }
 
@@ -59,5 +119,6 @@ export class App implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.navSub?.unsubscribe();
+    this.mobileQuery?.removeEventListener('change', this.onMobileChange);
   }
 }

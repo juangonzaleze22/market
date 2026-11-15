@@ -25,6 +25,11 @@ export class OrdersController {
     return this.ordersService.findByUser(userId);
   }
 
+  @Get('conversations')
+  listConversations(@CurrentUser() user: ChatUser) {
+    return this.orderChatService.listConversations(user);
+  }
+
   @Get(':id')
   findOne(@CurrentUser('userId') userId: string, @Param('id') id: string) {
     return this.ordersService.findOne(userId, id);
@@ -69,7 +74,12 @@ export class OrdersController {
       body: dto.body,
       attachments: dto.attachments,
     });
-    this.orderChatGateway.emitToOrder(id, 'message', message);
+    await this.orderChatGateway.emitMessage(message);
     return message;
+  }
+
+  @Post(':id/messages/read')
+  markMessagesRead(@CurrentUser() user: ChatUser, @Param('id') id: string) {
+    return this.orderChatService.markRead(user, id);
   }
 }

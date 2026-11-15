@@ -4,10 +4,11 @@ import {
   DashboardShell,
   DashboardNavItem,
 } from '../../shared/layout/dashboard-shell';
+import { ChatWidget } from '../../shared/ui/chat-widget';
 
 @Component({
   selector: 'app-delivery-layout',
-  imports: [RouterOutlet, DashboardShell],
+  imports: [RouterOutlet, DashboardShell, ChatWidget],
   template: `
     <app-dashboard-shell
       testIdPrefix="delivery"
@@ -17,6 +18,7 @@ import {
     >
       <router-outlet />
     </app-dashboard-shell>
+    <app-chat-widget [raised]="false" />
   `,
 })
 export class DeliveryLayout {

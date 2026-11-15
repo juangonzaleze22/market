@@ -11,10 +11,10 @@ import {
 import { InventoryRiskTable } from './inventory-risk-table';
 import { OrderStatusBadge } from '../../../shared/ui/order-status-badge';
 import { BranchService } from '../../../core/services/branch.service';
+import { ThemeService } from '../../../core/services/theme.service';
+import { hexToRgba } from '../../../core/utils/color.util';
 
-const CHART_COLORS = {
-  primary: '#1C8057',
-  accent: '#f5a623',
+const CHART_PALETTE = {
   blue: '#3b82f6',
   green: '#22c55e',
   red: '#ef4444',
@@ -578,6 +578,13 @@ interface AttentionItem {
 export class AdminDashboard implements OnInit {
   private readonly adminService = inject(AdminService);
   protected readonly branchService = inject(BranchService);
+  private readonly themeService = inject(ThemeService);
+
+  private readonly chartColors = computed(() => ({
+    ...CHART_PALETTE,
+    primary: this.themeService.theme().colors.primary,
+    accent: this.themeService.theme().colors.accent,
+  }));
 
   protected readonly data = signal<AdminDashboardData | null>(null);
   protected readonly loading = signal(true);
@@ -799,7 +806,7 @@ export class AdminDashboard implements OnInit {
         {
           data: rows.map((row) => row.orders),
           label: 'Pedidos',
-          backgroundColor: CHART_COLORS.primary,
+          backgroundColor: this.chartColors().primary,
           borderRadius: 6,
           barThickness: 20,
         },
@@ -838,8 +845,8 @@ export class AdminDashboard implements OnInit {
         {
           data: rows.map((row) => row.revenue),
           label: 'Ingresos',
-          borderColor: CHART_COLORS.primary,
-          backgroundColor: 'rgba(28, 128, 87, 0.12)',
+          borderColor: this.chartColors().primary,
+          backgroundColor: hexToRgba(this.chartColors().primary, 0.12),
           fill: true,
           tension: 0.4,
           pointRadius: 2,
@@ -848,8 +855,8 @@ export class AdminDashboard implements OnInit {
         {
           data: rows.map((row) => row.cost),
           label: 'Costo',
-          borderColor: CHART_COLORS.accent,
-          backgroundColor: 'rgba(245, 166, 35, 0.08)',
+          borderColor: this.chartColors().accent,
+          backgroundColor: hexToRgba(this.chartColors().accent, 0.08),
           fill: true,
           tension: 0.4,
           pointRadius: 2,
@@ -891,14 +898,14 @@ export class AdminDashboard implements OnInit {
   protected readonly salesByCategoryChartData = computed<ChartData<'bar'>>(() => {
     const categories = [...(this.data()?.salesByCategory ?? [])].slice(0, 8);
     const colors = [
-      CHART_COLORS.primary,
-      CHART_COLORS.accent,
-      CHART_COLORS.blue,
-      CHART_COLORS.green,
-      CHART_COLORS.violet,
-      CHART_COLORS.pink,
-      CHART_COLORS.amber,
-      CHART_COLORS.gray,
+      this.chartColors().primary,
+      this.chartColors().accent,
+      this.chartColors().blue,
+      this.chartColors().green,
+      this.chartColors().violet,
+      this.chartColors().pink,
+      this.chartColors().amber,
+      this.chartColors().gray,
     ];
     return {
       labels: categories.map((category) => category.name),

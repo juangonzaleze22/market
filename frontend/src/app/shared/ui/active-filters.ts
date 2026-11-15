@@ -2,7 +2,15 @@ import { Component, input, output } from '@angular/core';
 
 export interface ActiveFilter {
   label: string;
-  type: 'category' | 'tag' | 'price' | 'rating' | 'stock' | 'search' | 'bestDeals';
+  type:
+    | 'category'
+    | 'tag'
+    | 'collection'
+    | 'price'
+    | 'rating'
+    | 'stock'
+    | 'search'
+    | 'bestDeals';
   value: string;
 }
 

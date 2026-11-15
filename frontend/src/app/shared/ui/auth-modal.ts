@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { AuthModalService } from '../../core/services/auth-modal.service';
 import { CartService } from '../../core/services/cart.service';
 import { FavoriteService } from '../../core/services/favorite.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { ModalComponent } from './modal';
 
 @Component({
@@ -24,9 +25,9 @@ import { ModalComponent } from './modal';
         <div class="auth-modal-content">
           <a routerLink="/" class="auth-logo" data-testid="auth-logo" aria-label="Ir al inicio" (click)="modal.close()">
             <span class="auth-logo-mark">
-              <img src="/assets/icons/logo.png" alt="" class="w-6 h-6 object-contain" />
+              <img [src]="branding().logoUrl" alt="" class="w-6 h-6 object-contain" />
             </span>
-            <span class="auth-logo-text">Market<span class="auth-logo-dot">.</span></span>
+            <span class="auth-logo-text">{{ branding().brandName }}</span>
           </a>
           <h2 class="text-display-md font-bold mt-2xl">Bienvenido de nuevo</h2>
           <p class="text-body-md text-body mt-sm">
@@ -135,9 +136,9 @@ import { ModalComponent } from './modal';
         <div class="auth-modal-content">
           <a routerLink="/" class="auth-logo" data-testid="auth-logo" aria-label="Ir al inicio" (click)="modal.close()">
             <span class="auth-logo-mark">
-              <img src="/assets/icons/logo.png" alt="" class="w-6 h-6 object-contain" />
+              <img [src]="branding().logoUrl" alt="" class="w-6 h-6 object-contain" />
             </span>
-            <span class="auth-logo-text">Market<span class="auth-logo-dot">.</span></span>
+            <span class="auth-logo-text">{{ branding().brandName }}</span>
           </a>
           @if (registerSuccess()) {
             <h2 class="text-display-md font-bold mt-2xl" data-testid="auth-register-success">
@@ -182,7 +183,7 @@ import { ModalComponent } from './modal';
           } @else {
           <h2 class="text-display-md font-bold mt-2xl">Crear cuenta</h2>
           <p class="text-body-md text-body mt-sm">
-            Completa tus datos para empezar a comprar en Market.
+            Completa tus datos para empezar a comprar en {{ branding().brandName }}.
           </p>
           <form class="auth-fields" (ngSubmit)="register()">
             <div class="form-row-2">
@@ -360,6 +361,7 @@ import { ModalComponent } from './modal';
 })
 export class AuthModalComponent {
   protected readonly modal = inject(AuthModalService);
+  protected readonly branding = inject(ThemeService).branding;
   private readonly auth = inject(AuthService);
   private readonly cart = inject(CartService);
   private readonly favorites = inject(FavoriteService);

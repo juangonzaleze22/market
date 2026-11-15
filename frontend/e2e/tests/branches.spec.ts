@@ -4,7 +4,11 @@ import { loginViaModal } from '../helpers/login';
 test.describe('Sucursales', () => {
   test('el botón flotante permite elegir una sucursal', async ({ page }) => {
     await page.goto('/');
-    await page.click('[data-testid="branch-switcher-button"]');
+    await page.locator('[data-testid="header"]').waitFor({ state: 'visible' });
+    const headerTrigger = page.locator('[data-testid="header-address-button"]');
+    const fabTrigger = page.locator('[data-testid="branch-switcher-button"]');
+    const trigger = (await headerTrigger.isVisible()) ? headerTrigger : fabTrigger;
+    await trigger.click();
     const modal = page.locator('[data-testid="branch-switcher"]');
     await expect(modal).toBeVisible({ timeout: 10000 });
     await expect(

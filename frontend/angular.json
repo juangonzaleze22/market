@@ -31,6 +31,9 @@
             ],
             "styles": [
               "node_modules/leaflet/dist/leaflet.css",
+              "node_modules/swiper/swiper.css",
+              "node_modules/swiper/modules/free-mode.css",
+              "node_modules/@angular/cdk/overlay-prebuilt.css",
               "src/styles.scss"
             ],
             "allowedCommonJsDependencies": [
@@ -101,6 +104,9 @@
             ],
             "styles": [
               "node_modules/leaflet/dist/leaflet.css",
+              "node_modules/swiper/swiper.css",
+              "node_modules/swiper/modules/free-mode.css",
+              "node_modules/@angular/cdk/overlay-prebuilt.css",
               "src/styles.scss"
             ]
           }

@@ -4,19 +4,46 @@ import { combineLatest } from 'rxjs';
 import { Product, ProductService, Tag } from '../../core/services/product.service';
 import { Category, CategoryService } from '../../core/services/category.service';
 import { BranchService } from '../../core/services/branch.service';
+import { CollectionSection, CollectionService } from '../../core/services/collection.service';
 import { ProductCard } from '../../shared/ui/product-card';
 import { PageHero, Breadcrumb } from '../../shared/ui/page-hero';
 import { ActiveFilters, ActiveFilter } from '../../shared/ui/active-filters';
+import { CollectionsRail } from '../../shared/ui/collections-rail';
 import { ShopFilters, ShopFilterState } from './shop-filters';
 import { SortDropdown, SortOption } from './sort-dropdown';
 
 @Component({
   selector: 'app-shop',
-  imports: [ProductCard, PageHero, ActiveFilters, ShopFilters, SortDropdown],
+  imports: [
+    ProductCard,
+    PageHero,
+    ActiveFilters,
+    CollectionsRail,
+    ShopFilters,
+    SortDropdown,
+  ],
   template: `
-    <app-page-hero title="Tienda" [breadcrumbs]="breadcrumbs" />
+    <app-page-hero [title]="heroTitle()" [breadcrumbs]="breadcrumbs()" />
+
+    <app-collections-rail [collections]="collections()" [activeSlug]="filterState().collectionSlug" />
 
     <section class="container-max shop-layout">
+      @if (collectionDetail(); as collection) {
+        <div class="collection-context" data-testid="collection-context">
+          <span class="collection-context-text">
+            Viendo la colección <strong>{{ collection.title }}</strong>
+          </span>
+          <button
+            type="button"
+            class="collection-context-clear"
+            (click)="clearCollection()"
+            data-testid="clear-collection"
+          >
+            Ver todo el catálogo
+          </button>
+        </div>
+      }
+
       <!-- Active Filters -->
       <div class="shop-active-row">
         <app-active-filters
@@ -120,6 +147,45 @@ import { SortDropdown, SortOption } from './sort-dropdown';
 
     .shop-active-row {
       min-height: 0;
+    }
+
+    .collection-context {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      flex-wrap: wrap;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border: 1px solid var(--color-surface-pressed);
+      border-radius: var(--radius-pill);
+      background-color: var(--color-canvas-soft);
+    }
+
+    .collection-context-text {
+      font-size: var(--text-body-sm);
+      color: var(--color-body);
+    }
+
+    .collection-context-text strong {
+      color: var(--color-ink);
+      font-weight: 600;
+    }
+
+    .collection-context-clear {
+      border: none;
+      background: none;
+      color: var(--color-primary);
+      font-size: var(--text-body-sm);
+      font-weight: 600;
+      cursor: pointer;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-md);
+      transition: background-color 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .collection-context-clear:hover {
+      background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
     }
 
     .shop-toolbar {
@@ -298,6 +364,7 @@ export class Shop implements OnInit {
   private readonly productService = inject(ProductService);
   private readonly categoryService = inject(CategoryService);
   private readonly branchService = inject(BranchService);
+  private readonly collectionService = inject(CollectionService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -305,13 +372,25 @@ export class Shop implements OnInit {
     const loaded = this.branchService.loaded();
     this.branchService.selectedBranch();
     if (!loaded) return;
-    untracked(() => this.loadProducts());
+    untracked(() => {
+      this.loadProducts();
+      this.loadShopCollections();
+    });
   });
 
-  protected readonly breadcrumbs: Breadcrumb[] = [
-    { label: 'Inicio', link: '/' },
-    { label: 'Tienda' },
-  ];
+  protected readonly collections = signal<CollectionSection[]>([]);
+  protected readonly collectionDetail = signal<CollectionSection | null>(null);
+
+  protected readonly heroTitle = computed(
+    () => this.collectionDetail()?.title ?? 'Tienda',
+  );
+
+  protected readonly breadcrumbs = computed<Breadcrumb[]>(() => {
+    const collection = this.collectionDetail();
+    return collection
+      ? [{ label: 'Inicio', link: '/' }, { label: 'Tienda', link: '/shop' }, { label: collection.title }]
+      : [{ label: 'Inicio', link: '/' }, { label: 'Tienda' }];
+  });
 
   protected readonly products = signal<Product[]>([]);
   protected readonly categories = signal<Category[]>([]);
@@ -321,6 +400,7 @@ export class Shop implements OnInit {
   protected readonly filterState = signal<ShopFilterState>({
     selectedCategorySlugs: [],
     selectedTagSlugs: [],
+    collectionSlug: null,
     minPrice: 0,
     maxPrice: 500,
     includeOutOfStock: false,
@@ -367,6 +447,21 @@ export class Shop implements OnInit {
       }
     }
 
+    if (state.collectionSlug) {
+      const collection =
+        this.collections().find((c) => c.slug === state.collectionSlug) ??
+        (this.collectionDetail()?.slug === state.collectionSlug
+          ? this.collectionDetail()
+          : null);
+      if (collection) {
+        tags.push({
+          label: collection.title,
+          type: 'collection',
+          value: collection.slug,
+        });
+      }
+    }
+
     if (state.minPrice > 0 || state.maxPrice < this.priceBounds().max) {
       tags.push({
         label: `Precio: $\${state.minPrice} - $\${state.maxPrice}`,
@@ -398,6 +493,7 @@ export class Shop implements OnInit {
 
   ngOnInit(): void {
     this.branchService.load();
+    this.loadShopCollections();
     combineLatest([
       this.categoryService.getAll(),
       this.productService.getTags(),
@@ -443,6 +539,8 @@ export class Shop implements OnInit {
         filter.type === 'tag'
           ? s.selectedTagSlugs.filter((slug) => slug !== filter.value)
           : s.selectedTagSlugs,
+      collectionSlug:
+        filter.type === 'collection' ? null : s.collectionSlug,
       minPrice: filter.type === 'price' ? 0 : s.minPrice,
       maxPrice: filter.type === 'price' ? this.priceBounds().max : s.maxPrice,
       includeOutOfStock:
@@ -452,10 +550,17 @@ export class Shop implements OnInit {
     this.loadProductsWithFilters();
   }
 
+  protected clearCollection(): void {
+    this.filterState.update((state) => ({ ...state, collectionSlug: null }));
+    this.writeFiltersToUrl();
+    this.loadProducts();
+  }
+
   protected clearFilters(): void {
     this.filterState.set({
       selectedCategorySlugs: [],
       selectedTagSlugs: [],
+      collectionSlug: null,
       minPrice: 0,
       maxPrice: this.priceBounds().max,
       includeOutOfStock: false,
@@ -475,6 +580,7 @@ export class Shop implements OnInit {
     const tagSlugs = params['tag']
       ? params['tag'].split(',').filter(Boolean)
       : [];
+    const collectionSlug = params['collection'] || null;
     const minPrice = params['minPrice'] ? Number(params['minPrice']) : 0;
     const maxPrice = params['maxPrice'] ? Number(params['maxPrice']) : 500;
     const sort = (params['sort'] as SortOption) || 'default';
@@ -483,6 +589,7 @@ export class Shop implements OnInit {
     this.filterState.set({
       selectedCategorySlugs: categories,
       selectedTagSlugs: tagSlugs,
+      collectionSlug,
       minPrice,
       maxPrice,
       includeOutOfStock,
@@ -502,6 +609,7 @@ export class Shop implements OnInit {
       state.selectedTagSlugs.length > 0
         ? state.selectedTagSlugs.join(',')
         : null;
+    queryParams['collection'] = state.collectionSlug;
     queryParams['minPrice'] =
       state.minPrice > 0 ? String(state.minPrice) : null;
     queryParams['maxPrice'] =
@@ -525,7 +633,31 @@ export class Shop implements OnInit {
 
   private loadProducts(): void {
     const state = this.filterState();
+    if (state.collectionSlug) {
+      this.collectionService.getBySlug(state.collectionSlug).subscribe({
+        next: (collection) => {
+          this.collectionDetail.set(collection);
+          this.fetchProducts(collection.productIds ?? []);
+        },
+        error: () => {
+          this.collectionDetail.set(null);
+          this.products.set([]);
+        },
+      });
+      return;
+    }
+
+    this.collectionDetail.set(null);
+    this.fetchProducts(undefined);
+  }
+
+  private fetchProducts(ids?: string[]): void {
+    const state = this.filterState();
     const search = this.route.snapshot.queryParams['search'] || '';
+    if (ids && ids.length === 0) {
+      this.products.set([]);
+      return;
+    }
 
     // Resolve category IDs from slugs (API supports a single category for now)
     const categoryIds = state.selectedCategorySlugs
@@ -540,6 +672,7 @@ export class Shop implements OnInit {
 
     this.productService
       .getAll({
+        ids,
         categoryId,
         tagIds: tagIds.length > 0 ? tagIds : undefined,
         search: search || undefined,
@@ -552,6 +685,12 @@ export class Shop implements OnInit {
         inStock: state.includeOutOfStock ? undefined : true,
       })
       .subscribe((products) => this.products.set(products));
+  }
+
+  private loadShopCollections(): void {
+    this.collectionService
+      .getSections('shop')
+      .subscribe((collections) => this.collections.set(collections));
   }
 
   private loadProductsWithFilters(): void {

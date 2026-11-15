@@ -13,10 +13,12 @@
 ### Paleta de Colores Permitida
 Solo usar los siguientes tokens CSS. **No introducir colores arbitrarios.**
 
-| Token | Valor | Uso |
+| Token | Valor por defecto | Uso |
 |-------|-------|-----|
-| `--color-primary` | `#000000` | Botones primarios, texto principal |
-| `--color-on-primary` | `#ffffff` | Texto sobre fondo negro |
+| `--color-primary` | `#1C8057` | Botones primarios, navbar, marca |
+| `--color-on-primary` | `#ffffff` | Texto sobre color primario |
+| `--color-accent` | `#f5a623` | Acentos, badges, top banner, hover |
+| `--color-on-accent` | `#1C8057` | Texto sobre color de acento |
 | `--color-ink` | `#000000` | Texto general |
 | `--color-body` | `#5e5e5e` | Texto secundario/descripciones |
 | `--color-mute` | `#afafaf` | Texto terciario, placeholders |
@@ -24,8 +26,15 @@ Solo usar los siguientes tokens CSS. **No introducir colores arbitrarios.**
 | `--color-canvas-soft` | `#efefef` | Fondos de input, cards soft |
 | `--color-canvas-softer` | `#f3f3f3` | Fondos sutiles |
 | `--color-surface-pressed` | `#e2e2e2` | Hover states, bordes |
-| `--color-link` | `#0000ee` | Links |
+| `--color-link` | `#1C8057` | Links |
 | `--color-black-elevated` | `#282828` | Superficies oscuras elevadas |
+
+> **Tema configurable:** `--color-primary`, `--color-on-primary`, `--color-accent`,
+> `--color-on-accent` y `--color-link` pueden sobrescribirse en runtime desde
+> **Admin → Configuración → Apariencia y Marca**. No hardcodear estos colores en
+> componentes: usar siempre las clases/tokens (`bg-primary`, `text-accent`,
+> `var(--color-primary)`). Los colores de estado (rojo/verde/azul de badges) sí
+> son semánticos y no forman parte del tema.
 
 ### Botones
 - **Siempre** usar `border-radius: 999px` (pill shape) para botones.

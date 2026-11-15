@@ -16,6 +16,7 @@ import { ChatAttachmentDto, SendMessageDto } from './dto/chat.dto.js';
 const ADMIN_ROOM = 'admins';
 const DELIVERIES_ROOM = 'deliveries';
 const orderRoom = (orderId: string) => `order:${orderId}`;
+const userRoom = (userId: string) => `user:${userId}`;
 
 interface JwtPayload {
   sub: string;
@@ -55,6 +56,8 @@ export class OrderChatGateway implements OnGatewayConnection {
         role: payload.role,
       };
       client.data.user = user;
+
+      await client.join(userRoom(user.userId));
 
       if (user.role === UserRole.ADMIN) {
         await client.join(ADMIN_ROOM);
@@ -115,10 +118,22 @@ export class OrderChatGateway implements OnGatewayConnection {
     try {
       const dto = this.normalizePayload(payload);
       const message = await this.chatService.sendMessage(user, dto);
-      this.server.to(orderRoom(message.orderId)).emit('message', message);
+      await this.emitMessage(message);
     } catch (error) {
       this.emitError(client, error);
     }
+  }
+
+  async emitMessage(message: { orderId: string }): Promise<void> {
+    const order = await this.chatService.getOrderOrFail(message.orderId);
+    const rooms = [
+      orderRoom(message.orderId),
+      ADMIN_ROOM,
+      DELIVERIES_ROOM,
+      userRoom(order.userId),
+    ];
+    if (order.deliveryId) rooms.push(userRoom(order.deliveryId));
+    this.server?.to(rooms).emit('message', message);
   }
 
   emitToOrder(orderId: string, event: string, payload: unknown): void {

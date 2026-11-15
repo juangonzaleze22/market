@@ -2,19 +2,31 @@
   <app-top-banner />
   <app-header #headerRef class="sticky top-0 z-50" />
   <div
-    class="sticky z-40"
+    class="subnav-wrap sticky z-40"
     [style.top.px]="headerHeight()"
   >
     <app-navbar />
   </div>
 }
-<main [class]="hideShell() ? '' : 'min-h-screen bg-canvas pb-16 md:pb-0'">
+<main
+  [class]="
+    hideShell()
+      ? ''
+      : hideBottomNav()
+        ? 'min-h-screen bg-canvas'
+        : 'min-h-screen bg-canvas pb-16 md:pb-0'
+  "
+>
   <router-outlet />
 </main>
 @if (!hideShell()) {
   <app-footer />
-  <app-bottom-nav />
+  @if (!hideBottomNav()) {
+    <app-bottom-nav />
+  }
   <app-branch-switcher />
+  <app-scroll-to-top />
+  <app-chat-widget [hideOnMobile]="true" />
 }
 <app-cart-drawer />
 <app-auth-modal />

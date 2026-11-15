@@ -8,6 +8,7 @@ import type {
   DeliveryZone,
   ZonePoint,
 } from './branch.service';
+import type { SiteTheme } from '../models/site-theme';
 
 export interface BranchPayload {
   name: string;
@@ -371,7 +372,12 @@ export interface AdminUserDetail {
   orders: AdminOrder[];
 }
 
-export type UploadBucket = 'products' | 'categories' | 'banners';
+export type UploadBucket =
+  | 'products'
+  | 'categories'
+  | 'banners'
+  | 'collections'
+  | 'branding';
 
 export interface UploadResponse {
   url: string;
@@ -851,5 +857,6 @@ export interface SiteSettings {
     pago_movil?: { bank: string; phone: string; holderName: string; idDocument: string };
     zelle?: { email: string; holderName: string };
   } | null;
+  theme: SiteTheme | null;
   updatedAt: string;
 }

@@ -41,6 +41,7 @@ test.describe('Favoritos', () => {
   test('usuario marca, visualiza y quita favoritos', async ({
     page,
     request,
+    isMobile,
   }) => {
     await registerFreshUser(page, request);
     await page.goto('/shop');
@@ -70,7 +71,12 @@ test.describe('Favoritos', () => {
       reloadedCard.locator('[data-testid="favorite-button"]'),
     ).toHaveAttribute('aria-pressed', 'true');
 
-    await page.locator('[data-testid="favorites-button"]').click();
+    if (isMobile) {
+      await page.getByTestId('profile-button').click();
+      await page.getByTestId('profile-favorites').click();
+    } else {
+      await page.locator('[data-testid="favorites-button"]').click();
+    }
     await expect(page).toHaveURL(/\/favorites/);
     await expect(page.locator('[data-testid="favorites-page"]')).toBeVisible();
 

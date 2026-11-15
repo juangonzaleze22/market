@@ -1,5 +1,20 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Locator } from '@playwright/test';
 import { loginViaModal } from '../helpers/login';
+
+async function clickCardAction(card: Locator, action: 'edit' | 'delete' | 'set-default') {
+  const kebab = card.locator('[data-testid="address-actions"]');
+  if (await kebab.isVisible()) {
+    await kebab.click();
+  }
+
+  const desktopBtn = card.locator(`[data-testid="address-${action}-btn"]`);
+  if (await desktopBtn.isVisible()) {
+    await desktopBtn.click();
+    return;
+  }
+
+  await card.locator(`[data-testid="address-${action}"]`).click();
+}
 
 test.describe('Gestión de direcciones', () => {
   test.beforeEach(async ({ page }) => {
@@ -26,9 +41,10 @@ test.describe('Gestión de direcciones', () => {
     const card = page.locator('[data-testid="address-card"]', { hasText: label });
     await expect(card).toBeVisible({ timeout: 10000 });
     await expect(card.locator('[data-testid="address-card-street"]')).toHaveText('Calle Test 123');
+    await expect(card.locator('[data-testid="address-card-map"]')).toBeVisible();
 
     // Editar
-    await card.locator('[data-testid="address-edit"]').click();
+    await clickCardAction(card, 'edit');
     await expect(page.locator('[data-testid="address-form"]')).toBeVisible();
     await page.fill('[data-testid="address-form-street"]', 'Calle Editada 456');
     await page.click('[data-testid="address-form-submit"]');
@@ -38,7 +54,7 @@ test.describe('Gestión de direcciones', () => {
     });
 
     // Eliminar
-    await card.locator('[data-testid="address-delete"]').click();
+    await clickCardAction(card, 'delete');
     await expect(page.locator('[data-testid="address-delete-modal"]')).toBeVisible();
     await page.click('[data-testid="address-delete-confirm"]');
     await expect(page.locator('[data-testid="address-card"]', { hasText: label })).toHaveCount(0, {

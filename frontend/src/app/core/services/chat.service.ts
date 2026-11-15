@@ -13,7 +13,7 @@ export interface ChatAttachment {
   size: number;
 }
 
-export type ChatSenderRole = 'customer' | 'admin' | 'system';
+export type ChatSenderRole = 'customer' | 'admin' | 'delivery' | 'system';
 
 export interface ChatMessage {
   id: string;
@@ -23,6 +23,33 @@ export interface ChatMessage {
   body: string | null;
   attachments: ChatAttachment[];
   createdAt: string;
+}
+
+export type ChatMode = 'customer' | 'admin' | 'delivery';
+
+export interface ChatConversationCustomer {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+export interface ChatConversationMessage {
+  body: string | null;
+  senderRole: ChatSenderRole;
+  createdAt: string;
+  hasAttachments: boolean;
+}
+
+export interface ChatConversation {
+  orderId: string;
+  orderNumber: string;
+  orderStatus: string;
+  totalAmount: number;
+  createdAt: string;
+  customer: ChatConversationCustomer | null;
+  lastMessage: ChatConversationMessage | null;
+  unreadCount: number;
 }
 
 export interface NewOrderEvent {
@@ -68,12 +95,14 @@ export class ChatService implements OnDestroy {
   private readonly deliveryLocationSubject = new Subject<DeliveryLocationEvent>();
   private readonly deliveryAssignedSubject = new Subject<DeliveryAssignedEvent>();
   private readonly newReadyOrderSubject = new Subject<NewOrderEvent>();
+  private readonly messageSubject = new Subject<ChatMessage>();
 
   readonly newOrder$ = this.newOrderSubject.asObservable();
   readonly orderStatus$ = this.orderStatusSubject.asObservable();
   readonly deliveryLocation$ = this.deliveryLocationSubject.asObservable();
   readonly deliveryAssigned$ = this.deliveryAssignedSubject.asObservable();
   readonly newReadyOrder$ = this.newReadyOrderSubject.asObservable();
+  readonly message$ = this.messageSubject.asObservable();
   readonly connected = signal(false);
   readonly messages = signal<Record<string, ChatMessage[]>>({});
   readonly error = signal('');
@@ -112,6 +141,33 @@ export class ChatService implements OnDestroy {
     return this.http
       .get<ChatMessage[]>(this.api.url(`orders/${orderId}/messages`))
       .pipe(catchError(() => of([])));
+  }
+
+  getConversations(mode: ChatMode): Observable<ChatConversation[]> {
+    const path =
+      mode === 'admin'
+        ? 'admin/chat/conversations'
+        : mode === 'delivery'
+          ? 'delivery/chat/conversations'
+          : 'orders/conversations';
+    return this.http
+      .get<ChatConversation[]>(this.api.url(path))
+      .pipe(catchError(() => of([])));
+  }
+
+  markConversationRead(
+    orderId: string,
+    mode: ChatMode,
+  ): Observable<{ read: number }> {
+    const path =
+      mode === 'admin'
+        ? `admin/chat/orders/${orderId}/read`
+        : mode === 'delivery'
+          ? `delivery/chat/orders/${orderId}/read`
+          : `orders/${orderId}/messages/read`;
+    return this.http
+      .post<{ read: number }>(this.api.url(path), {})
+      .pipe(catchError(() => of({ read: 0 })));
   }
 
   getAdminMessages(orderId: string): Observable<ChatMessage[]> {
@@ -168,11 +224,14 @@ export class ChatService implements OnDestroy {
   }
 
   upsertMessage(message: ChatMessage): void {
+    let added = false;
     this.messages.update((current) => {
       const list = current[message.orderId] ?? [];
       if (list.some((item) => item.id === message.id)) return current;
+      added = true;
       return { ...current, [message.orderId]: [...list, message] };
     });
+    if (added) this.messageSubject.next(message);
   }
 
   private connect(token: string): void {

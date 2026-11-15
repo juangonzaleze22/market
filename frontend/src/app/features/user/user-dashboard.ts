@@ -267,6 +267,56 @@ import { OrderStatusBadge } from '../../shared/ui/order-status-badge';
             </div>
           }
         </div>
+
+        <!-- Mobile-only shortcuts (footer/navbar are hidden on mobile) -->
+        <div
+          class="bg-canvas rounded-xl border border-surface-pressed mt-xl overflow-hidden md:hidden"
+          data-testid="mobile-more-menu"
+        >
+          <p class="px-2xl pt-lg pb-md text-body-sm-strong text-mute uppercase tracking-wide">
+            Más
+          </p>
+          <a
+            routerLink="/about"
+            class="flex items-center justify-between px-2xl py-lg border-t border-surface-pressed hover:bg-canvas-softer transition-colors"
+            data-testid="mobile-more-about"
+          >
+            <span class="text-body-sm-strong">Quiénes somos</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+          <a
+            routerLink="/favorites"
+            class="flex items-center justify-between px-2xl py-lg border-t border-surface-pressed hover:bg-canvas-softer transition-colors"
+            data-testid="mobile-more-favorites"
+          >
+            <span class="text-body-sm-strong">Favoritos</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+          <a
+            routerLink="/account/notifications"
+            class="flex items-center justify-between px-2xl py-lg border-t border-surface-pressed hover:bg-canvas-softer transition-colors"
+            data-testid="mobile-more-notifications"
+          >
+            <span class="text-body-sm-strong">Notificaciones</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+          <a
+            routerLink="/orders"
+            class="flex items-center justify-between px-2xl py-lg border-t border-surface-pressed hover:bg-canvas-softer transition-colors"
+            data-testid="mobile-more-orders"
+          >
+            <span class="text-body-sm-strong">Mis pedidos</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-mute">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+        </div>
       }
     </section>
   `,

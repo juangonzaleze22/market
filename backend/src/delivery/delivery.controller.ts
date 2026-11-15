@@ -94,6 +94,19 @@ export class DeliveryController {
     return this.orderChatService.listForUser(user, id);
   }
 
+  @Get('chat/conversations')
+  listConversations(@CurrentUser() user: ChatUser) {
+    return this.orderChatService.listConversations(user);
+  }
+
+  @Post('chat/orders/:id/read')
+  markMessagesRead(
+    @CurrentUser() user: ChatUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.orderChatService.markRead(user, id);
+  }
+
   @Post('orders/:id/messages')
   async sendMessage(
     @CurrentUser() user: ChatUser,
@@ -105,7 +118,7 @@ export class DeliveryController {
       body: dto.body,
       attachments: dto.attachments,
     });
-    this.orderChatGateway.emitToOrder(id, 'message', message);
+    await this.orderChatGateway.emitMessage(message);
     return message;
   }
 }

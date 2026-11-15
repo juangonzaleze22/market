@@ -190,6 +190,24 @@ export class OrdersService {
       throw new BadRequestException('El carrito está vacío');
     }
 
+    const paymentMethod = (dto.paymentMethod ?? '').trim().toLowerCase();
+    const requiresPaymentProof =
+      paymentMethod.length > 0 &&
+      paymentMethod !== 'cash' &&
+      paymentMethod !== 'efectivo';
+
+    if (requiresPaymentProof && !dto.paymentReference?.trim()) {
+      throw new BadRequestException(
+        'La referencia de pago es obligatoria para este método de pago',
+      );
+    }
+
+    if (requiresPaymentProof && !dto.receipt?.trim()) {
+      throw new BadRequestException(
+        'El comprobante de pago es obligatorio para este método de pago',
+      );
+    }
+
     const location = await this.resolveOrderLocation(dto.branchId, address);
 
     const flashSaleMap = await this.flashSalesService.findActiveForProducts();

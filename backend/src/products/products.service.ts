@@ -74,6 +74,7 @@ export class ProductsService {
       categoryId?: string;
       tagId?: string;
       tagIds?: string[];
+      ids?: string[];
       search?: string;
       minPrice?: number;
       maxPrice?: number;
@@ -104,6 +105,10 @@ export class ProductsService {
       qb.andWhere('product.categoryId = :categoryId', {
         categoryId: query.categoryId,
       });
+    }
+
+    if (query.ids && query.ids.length > 0) {
+      qb.andWhere('product.id IN (:...ids)', { ids: query.ids });
     }
 
     if (query.tagIds && query.tagIds.length > 0) {

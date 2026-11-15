@@ -61,6 +61,12 @@ export const routes: Routes = [
       import('./features/orders/orders').then((m) => m.Orders),
   },
   {
+    path: 'messages',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/messages/messages').then((m) => m.Messages),
+  },
+  {
     path: 'order-completed/:id',
     canActivate: [authGuard],
     loadComponent: () =>
@@ -141,6 +147,25 @@ export const routes: Routes = [
         path: 'categories',
         loadComponent: () =>
           import('./features/admin/categories/categories').then((m) => m.AdminCategories),
+      },
+      {
+        path: 'collections/new',
+        loadComponent: () =>
+          import('./features/admin/collections/collection-editor').then(
+            (m) => m.CollectionEditor,
+          ),
+      },
+      {
+        path: 'collections/:id/edit',
+        loadComponent: () =>
+          import('./features/admin/collections/collection-editor').then(
+            (m) => m.CollectionEditor,
+          ),
+      },
+      {
+        path: 'collections',
+        loadComponent: () =>
+          import('./features/admin/collections/collections').then((m) => m.AdminCollections),
       },
       {
         path: 'orders',

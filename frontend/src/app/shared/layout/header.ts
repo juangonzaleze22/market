@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   effect,
   ElementRef,
   HostListener,
@@ -8,10 +9,12 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthModalService } from '../../core/services/auth-modal.service';
 import { CartService } from '../../core/services/cart.service';
@@ -19,18 +22,88 @@ import { FavoriteService } from '../../core/services/favorite.service';
 import { Product, ProductService } from '../../core/services/product.service';
 import { BranchService } from '../../core/services/branch.service';
 import { SiteSettingsService } from '../../core/services/site-settings.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { AppNotification, NotificationsService } from '../../core/services/notifications.service';
 
 @Component({
   selector: 'app-header',
   imports: [RouterLink, DatePipe, FormsModule],
   template: `
-    <header class="header-main" data-testid="header">
+    <header class="header-main" [class.is-compact]="compact()" data-testid="header">
       <div class="container-max header-inner">
+        @if (showBack()) {
+          <button
+            type="button"
+            class="header-back"
+            aria-label="Volver"
+            data-testid="header-back"
+            (click)="goBack()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+        }
+
         <!-- Logo -->
         <a routerLink="/" class="header-logo" data-testid="logo" aria-label="Ir al inicio">
-          <img src="/assets/icons/logo-white.webp" alt="Tu Mercadito" class="header-logo-img" />
+          <img [src]="branding().logoDarkUrl" [alt]="branding().brandName" class="header-logo-img" />
         </a>
+
+        <!-- Address / branch selector (mobile) -->
+        <button
+          type="button"
+          class="header-address"
+          (click)="openBranchSwitcher()"
+          data-testid="header-address-button"
+          aria-haspopup="dialog"
+          aria-label="Cambiar dirección de entrega"
+        >
+          <span class="address-icon" aria-hidden="true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+          </span>
+          <span class="address-text">
+            <span class="address-caption">Entregar a</span>
+            <span class="address-name">{{
+              selectedBranch()?.name || 'Elegir sucursal'
+            }}</span>
+          </span>
+          <svg
+            class="address-chevron"
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
 
         <!-- Search -->
         <div class="header-search" #searchContainer>
@@ -114,7 +187,7 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
         <div class="header-actions">
           <!-- Notifications -->
           @if (auth.isAuthed()) {
-            <div class="header-action-wrap" #notifContainer>
+            <div class="header-action-wrap notif-wrap" #notifContainer>
               <button
                 type="button"
                 class="header-icon-btn relative"
@@ -193,7 +266,7 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
           <!-- Wishlist -->
           <a
             routerLink="/favorites"
-            class="header-icon-btn relative"
+            class="header-icon-btn fav-btn relative"
             aria-label="Favoritos"
             data-testid="favorites-button"
           >
@@ -222,7 +295,7 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
           <!-- Cart -->
           <button
             type="button"
-            class="header-icon-btn relative"
+            class="header-icon-btn cart-btn relative"
             aria-label="Carrito de compras"
             (click)="cart.openDrawer()"
             data-testid="cart-button"
@@ -248,7 +321,7 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
           </button>
 
           <!-- Account -->
-          <div class="header-action-wrap" #profileContainer>
+          <div class="header-action-wrap profile-wrap" #profileContainer>
             <button
               type="button"
               class="header-icon-btn"
@@ -369,18 +442,73 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
       display: block;
     }
 
+    .header-back {
+      display: none;
+    }
+
     /* ─── Search ──────────────────────────────────── */
     .header-search {
       position: relative;
       flex: 1;
       min-width: 0;
-      display: none;
+      display: block;
     }
 
-    @media (min-width: 768px) {
-      .header-search {
-        display: block;
-      }
+    /* ─── Address / branch selector (mobile app style) ─── */
+    .header-address {
+      display: none;
+      align-items: center;
+      gap: var(--spacing-sm);
+      min-width: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--color-ink);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .address-icon {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+      border-radius: var(--radius-full);
+      background-color: var(--color-accent);
+      color: var(--color-on-accent);
+    }
+
+    .address-icon svg {
+      width: 19px;
+      height: 19px;
+    }
+
+    .address-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .address-caption {
+      font-size: var(--text-body-xs);
+      line-height: 1.1;
+      color: var(--color-body);
+    }
+
+    .address-name {
+      font-size: var(--text-body-md);
+      line-height: 1.2;
+      font-weight: 700;
+      color: var(--color-ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .address-chevron {
+      flex-shrink: 0;
+      color: var(--color-ink);
     }
 
     .search-bar {
@@ -733,6 +861,123 @@ import { AppNotification, NotificationsService } from '../../core/services/notif
       text-decoration: none;
     }
 
+    /* ─── Mobile app-style header ─────────────────── */
+    @media (max-width: 767px) {
+      .header-main {
+        background-color: var(--color-canvas);
+        color: var(--color-ink);
+        border-bottom: 1px solid var(--color-surface-pressed);
+      }
+
+      .header-inner {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-areas:
+          'back address profile'
+          'search search cart';
+        align-items: center;
+        gap: var(--spacing-xs) var(--spacing-xxs);
+        height: auto;
+        padding-top: var(--spacing-sm);
+        padding-bottom: var(--spacing-sm);
+        transition: padding 0.2s ease;
+      }
+
+      .header-back {
+        grid-area: back;
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border: 0;
+        border-radius: 50%;
+        background: none;
+        color: var(--color-ink);
+        cursor: pointer;
+      }
+
+      .header-back:hover {
+        background-color: var(--color-canvas-soft);
+      }
+
+      .header-back svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .header-logo {
+        display: none;
+      }
+
+      .header-address {
+        grid-area: address;
+        display: inline-flex;
+      }
+
+      .header-search {
+        grid-area: search;
+      }
+
+      .header-actions {
+        display: contents;
+      }
+
+      .notif-wrap,
+      .fav-btn {
+        display: none;
+      }
+
+      .profile-wrap {
+        grid-area: profile;
+      }
+
+      .cart-btn {
+        grid-area: cart;
+      }
+
+      .header-icon-btn {
+        width: 38px;
+        height: 38px;
+        color: var(--color-ink);
+      }
+
+      .header-icon-btn:hover {
+        background-color: var(--color-canvas-soft);
+      }
+
+      .cart-btn,
+      .cart-btn:hover {
+        background-color: var(--color-primary);
+        color: var(--color-on-primary);
+      }
+
+      .search-bar {
+        flex-direction: row-reverse;
+        background-color: var(--color-canvas-soft);
+        border: 1px solid var(--color-surface-pressed);
+        height: 44px;
+      }
+
+      .search-input {
+        padding: 0 var(--spacing-sm);
+        font-size: var(--text-body-md);
+      }
+
+      .search-btn {
+        width: 42px;
+        color: var(--color-body);
+      }
+
+      .header-main.is-compact .header-address,
+      .header-main.is-compact .profile-wrap {
+        display: none;
+      }
+
+      .header-main.is-compact .header-inner {
+        grid-template-areas: 'back search cart';
+      }
+    }
+
     /* ─── Responsive ──────────────────────────────── */
     @media (max-width: 480px) {
       .header-inner {
@@ -752,17 +997,45 @@ export class Header implements OnInit {
   protected readonly favorites = inject(FavoriteService);
   protected readonly notifications = inject(NotificationsService);
   protected readonly settingsService = inject(SiteSettingsService);
+  protected readonly branding = inject(ThemeService).branding;
   private readonly productService = inject(ProductService);
   private readonly branchService = inject(BranchService);
   private readonly router = inject(Router);
   private readonly elementRef = inject(ElementRef);
 
   protected readonly settings = this.settingsService.settings;
+  protected readonly selectedBranch = this.branchService.selectedBranch;
   protected search = '';
   protected readonly searchResults = signal<Product[]>([]);
   protected readonly showDropdown = signal(false);
   protected readonly profileOpen = signal(false);
   protected readonly notifOpen = signal(false);
+  protected readonly scrolled = signal(false);
+  protected readonly compact = computed(
+    () => this.scrolled() && !this.profileOpen() && !this.notifOpen(),
+  );
+
+  protected readonly showBack = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => this.shouldShowBack(event.urlAfterRedirects)),
+    ),
+    { initialValue: this.shouldShowBack(this.router.url) },
+  );
+
+  private shouldShowBack(url: string): boolean {
+    const path = url.split('?')[0];
+    if (path === '/') return false;
+    return !['/shop', '/messages', '/profile'].includes(path);
+  }
+
+  protected goBack(): void {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    void this.router.navigateByUrl('/');
+  }
 
   private readonly searchSubject = new Subject<string>();
 
@@ -875,5 +1148,17 @@ export class Header implements OnInit {
       this.profileOpen.set(false);
       this.notifOpen.set(false);
     }
+  }
+
+  @HostListener('window:scroll')
+  protected onWindowScroll(): void {
+    const shouldCompact = window.scrollY > 32;
+    if (shouldCompact !== this.scrolled()) {
+      this.scrolled.set(shouldCompact);
+    }
+  }
+
+  protected openBranchSwitcher(): void {
+    this.branchService.switcherOpen.set(true);
   }
 }

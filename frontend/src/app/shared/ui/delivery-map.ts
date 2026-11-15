@@ -7,6 +7,7 @@ import {
   viewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
+import { readCssColor } from '../../core/utils/color.util';
 import { environment } from '../../../environments/environment';
 
 const FALLBACK_CENTER: L.LatLngTuple = [environment.mapCenterLat, environment.mapCenterLng];
@@ -138,7 +139,7 @@ export class DeliveryMapComponent implements OnDestroy {
     if (!this.map) return;
     const icon = L.divIcon({
       className: 'delivery-marker',
-      html: `<div style="width:24px;height:24px;background:#1C8057;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div>`,
+      html: `<div style="width:24px;height:24px;background:${readCssColor('--color-primary', '#1C8057')};border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div>`,
       iconSize: [24, 24],
       iconAnchor: [12, 12],
     });
@@ -208,7 +209,7 @@ export class DeliveryMapComponent implements OnDestroy {
       this.routeLine.setLatLngs(coords);
     } else {
       this.routeLine = L.polyline(coords, {
-        color: '#1C8057',
+        color: readCssColor('--color-primary', '#1C8057'),
         weight: 4,
         opacity: 0.8,
       }).addTo(this.map);

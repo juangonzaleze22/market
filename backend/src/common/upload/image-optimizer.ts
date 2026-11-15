@@ -22,6 +22,7 @@ export const IMAGE_PROFILES: Record<string, ImageProfile> = {
   banners: { maxWidth: 1920, maxHeight: 1920, quality: 82 },
   receipts: { maxWidth: 2000, maxHeight: 2000, quality: 85 },
   chat: { maxWidth: 1600, maxHeight: 1600, quality: 80 },
+  branding: { maxWidth: 512, maxHeight: 512, quality: 90 },
 };
 
 const DEFAULT_PROFILE: ImageProfile = {

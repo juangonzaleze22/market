@@ -1,8 +1,10 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, of, tap } from 'rxjs';
+import { Observable, catchError, of, tap } from 'rxjs';
 import { ApiService } from './api.service';
+import { ThemeService } from './theme.service';
 import { environment } from '../../../environments/environment';
+import { DEFAULT_SITE_THEME, SiteTheme, normalizeTheme } from '../models/site-theme';
 
 export interface SiteSettings {
   id: string;
@@ -18,6 +20,7 @@ export interface SiteSettings {
     pago_movil?: { bank: string; phone: string; holderName: string; idDocument: string };
     zelle?: { email: string; holderName: string };
   } | null;
+  theme: SiteTheme | null;
   updatedAt: string;
 }
 
@@ -40,6 +43,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   ],
   promoMessage: 'Envío gratis en pedidos mayores a $50',
   paymentInfo: null,
+  theme: DEFAULT_SITE_THEME,
   updatedAt: '',
 };
 
@@ -48,20 +52,41 @@ const DEFAULT_SETTINGS: SiteSettings = {
 })
 export class SiteSettingsService {
   private readonly path = 'settings';
+  private readonly http = inject(HttpClient);
+  private readonly api = inject(ApiService);
+  private readonly themeService = inject(ThemeService);
+
   private loaded = false;
 
   readonly settings = signal<SiteSettings>(DEFAULT_SETTINGS);
 
-  constructor(private http: HttpClient, private api: ApiService) {}
-
   load(): void {
     if (this.loaded) return;
-    this.http
-      .get<SiteSettings>(this.api.url(this.path))
-      .pipe(
-        catchError(() => of(DEFAULT_SETTINGS)),
-        tap(() => (this.loaded = true)),
-      )
-      .subscribe((s) => this.settings.set(s));
+    this.loadInitial().subscribe();
+  }
+
+  loadInitial(): Observable<SiteSettings> {
+    return this.http.get<SiteSettings>(this.api.url(this.path)).pipe(
+      catchError(() => of(DEFAULT_SETTINGS)),
+      tap((response) => {
+        const resolved: SiteSettings = {
+          ...DEFAULT_SETTINGS,
+          ...response,
+          theme: normalizeTheme(response.theme),
+        };
+        this.settings.set(resolved);
+        this.themeService.apply(resolved.theme);
+        this.loaded = true;
+      }),
+    );
+  }
+
+  reload(): Observable<SiteSettings> {
+    this.loaded = false;
+    return this.loadInitial();
+  }
+
+  applyThemePreview(theme: Partial<SiteTheme>): void {
+    this.themeService.apply(theme);
   }
 }

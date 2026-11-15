@@ -314,17 +314,38 @@ import { SiteSettingsService } from '../../core/services/site-settings.service';
 
     /* ─── Responsive ───────────────────────────── */
     @media (max-width: 767px) {
+      .navbar {
+        background-color: var(--color-canvas);
+        border-top: none;
+        border-bottom: 1px solid var(--color-surface-pressed);
+      }
+
       .navbar-inner {
-        gap: var(--spacing-sm);
-        height: 52px;
+        gap: 0;
+        height: 46px;
       }
 
       .nav-toggle {
-        display: inline-flex;
+        display: none;
       }
 
       .nav-links {
-        display: none;
+        display: flex;
+        gap: var(--spacing-lg);
+      }
+
+      .nav-link {
+        color: var(--color-body);
+        font-size: var(--text-body-sm);
+        font-weight: 600;
+      }
+
+      .nav-link:hover {
+        color: var(--color-primary);
+      }
+
+      .nav-link-active {
+        color: var(--color-primary);
       }
 
       .delivery-info {
@@ -333,11 +354,6 @@ import { SiteSettingsService } from '../../core/services/site-settings.service';
 
       .categories-dropdown-wrap {
         display: none;
-      }
-
-      .categories-btn {
-        padding: var(--spacing-xs) var(--spacing-md);
-        font-size: var(--text-body-sm);
       }
     }
 

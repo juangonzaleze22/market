@@ -12,7 +12,18 @@ Start-Process -FilePath "powershell.exe" -ArgumentList "-NoExit -ExecutionPolicy
 Write-Host "Abriendo Backend en nueva ventana..." -ForegroundColor Green
 Start-Process -FilePath "powershell.exe" -ArgumentList "-NoExit -ExecutionPolicy Bypass -File `"$backendScript`"" -WorkingDirectory $projectRoot
 
-Start-Sleep -Seconds 2
+Write-Host "Esperando a que el backend responda..." -ForegroundColor Gray
+$backendReady = $false
+for ($i = 0; $i -lt 90; $i++) {
+    try {
+        $response = Invoke-WebRequest -Uri "http://localhost:3000/api/docs" -UseBasicParsing -TimeoutSec 2
+        if ($response.StatusCode -eq 200) { $backendReady = $true; break }
+    } catch { }
+    Start-Sleep -Seconds 1
+}
+if (-not $backendReady) {
+    Write-Host "  Aviso: el backend no respondio en 90s. Iniciando el frontend igualmente." -ForegroundColor Yellow
+}
 
 Write-Host "Abriendo Frontend en nueva ventana..." -ForegroundColor Cyan
 Start-Process -FilePath "powershell.exe" -ArgumentList "-NoExit -ExecutionPolicy Bypass -File `"$frontendScript`"" -WorkingDirectory $projectRoot

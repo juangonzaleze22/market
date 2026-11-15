@@ -28,10 +28,19 @@ test.describe('Página 404', () => {
     await expect(page).toHaveURL(/\/shop/);
   });
 
-  test('mantiene el header y footer del sitio', async ({ page }) => {
+  test('mantiene el shell del sitio según el dispositivo', async ({
+    page,
+    isMobile,
+  }) => {
     await page.goto('/ruta-que-no-existe');
 
     await expect(page.locator('[data-testid="header"]')).toBeVisible();
-    await expect(page.locator('[data-testid="footer"]')).toBeVisible();
+
+    if (isMobile) {
+      await expect(page.locator('[data-testid="footer"]')).toBeHidden();
+      await expect(page.locator('[data-testid="bottom-nav"]')).toBeVisible();
+    } else {
+      await expect(page.locator('[data-testid="footer"]')).toBeVisible();
+    }
   });
 });

@@ -6,6 +6,7 @@ import {
   AppNotification,
   NotificationsService,
 } from '../../core/services/notifications.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 export interface DashboardNavItem {
   path: string;
@@ -42,9 +43,9 @@ export interface DashboardNavItem {
         <div class="px-xl py-2xl border-b border-white/10">
           <div class="flex items-center justify-between">
             <a [routerLink]="homePath()" class="flex items-center gap-md" (click)="closeSidebar()">
-              <div class="w-10 h-10 bg-accent rounded-full flex items-center justify-center text-on-accent font-bold text-body-md">M</div>
+              <div class="w-10 h-10 bg-accent rounded-full flex items-center justify-center text-on-accent font-bold text-body-md">{{ brandInitial() }}</div>
               <div class="flex flex-col">
-                <span class="text-body-lg font-bold text-white leading-tight">Market<span class="text-accent">.</span></span>
+                <span class="text-body-lg font-bold text-white leading-tight">{{ branding().brandName }}<span class="text-accent">.</span></span>
                 <span class="text-body-xs text-white/50">{{ brandSubtitle() }}</span>
               </div>
             </a>
@@ -252,6 +253,10 @@ export class DashboardShell {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   protected readonly notifications = inject(NotificationsService);
+  protected readonly branding = inject(ThemeService).branding;
+  protected readonly brandInitial = computed(() =>
+    this.branding().brandName.trim().charAt(0).toUpperCase(),
+  );
 
   readonly testIdPrefix = input.required<string>();
   readonly brandSubtitle = input('Admin Panel');

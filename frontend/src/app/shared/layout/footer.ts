@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthModalService } from '../../core/services/auth-modal.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-footer',
@@ -11,7 +12,7 @@ import { AuthModalService } from '../../core/services/auth-modal.service';
         <div class="flex flex-col md:flex-row gap-3xl">
           <!-- Brand column — wider and takes remaining space -->
           <div class="flex-1 flex flex-col gap-md min-w-0">
-            <p class="text-display-sm font-bold">Tu Mercadito</p>
+            <p class="text-display-sm font-bold">{{ branding().brandName }}</p>
             <p class="text-body-sm opacity-80 leading-relaxed" style="max-width: 420px;">
               Tu tienda en línea con lo esencial para cada día. Calidad, simplicidad y buen precio.
             </p>
@@ -64,7 +65,7 @@ import { AuthModalService } from '../../core/services/auth-modal.service';
       </div>
       <div class="border-t border-white/20">
         <div class="container-max py-lg flex items-center justify-between text-caption opacity-80">
-          <p>© 2026 Tu Mercadito. Todos los derechos reservados.</p>
+          <p>© 2026 {{ branding().brandName }}. Todos los derechos reservados.</p>
           <p>Hecho con Angular y NestJS</p>
         </div>
       </div>
@@ -73,4 +74,5 @@ import { AuthModalService } from '../../core/services/auth-modal.service';
 })
 export class Footer {
   readonly authModal = inject(AuthModalService);
+  protected readonly branding = inject(ThemeService).branding;
 }

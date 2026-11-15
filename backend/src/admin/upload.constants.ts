@@ -6,7 +6,13 @@ export {
   UPLOAD_ROOT,
 } from '../common/upload/upload.constants.js';
 
-export const ALLOWED_BUCKETS = ['products', 'categories', 'banners'] as const;
+export const ALLOWED_BUCKETS = [
+  'products',
+  'categories',
+  'banners',
+  'collections',
+  'branding',
+] as const;
 
 export type UploadBucket = (typeof ALLOWED_BUCKETS)[number];
 

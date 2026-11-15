@@ -161,7 +161,7 @@ interface MiniStep {
     }
 
     .flow-step.active .flow-icon {
-      box-shadow: 0 0 0 3px rgba(28, 128, 87, 0.18);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
     }
 
     .flow-step:hover .flow-icon {

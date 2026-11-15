@@ -22,6 +22,7 @@ import { UploadsModule } from './uploads/uploads.module.js';
 import { BannersModule } from './banners/banners.module.js';
 import { SettingsModule } from './settings/settings.module.js';
 import { FlashSalesModule } from './flash-sales/flash-sales.module.js';
+import { CollectionsModule } from './collections/collections.module.js';
 import { WarehouseModule } from './warehouse/warehouse.module.js';
 import { DeliveryModule } from './delivery/delivery.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
@@ -61,6 +62,7 @@ import { DatabaseModule } from './database/database.module.js';
     BannersModule,
     SettingsModule,
     FlashSalesModule,
+    CollectionsModule,
     WarehouseModule,
     DeliveryModule,
     NotificationsModule,

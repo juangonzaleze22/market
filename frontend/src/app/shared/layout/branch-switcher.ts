@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { Branch, BranchService } from '../../core/services/branch.service';
 
 @Component({
@@ -336,6 +336,12 @@ import { Branch, BranchService } from '../../core/services/branch.service';
       color: var(--color-body);
     }
 
+    @media (max-width: 767px) {
+      .branch-fab {
+        display: none;
+      }
+    }
+
     @media (min-width: 768px) {
       .branch-fab {
         bottom: var(--spacing-xl);
@@ -351,7 +357,7 @@ import { Branch, BranchService } from '../../core/services/branch.service';
 export class BranchSwitcher implements OnInit {
   protected readonly branchService = inject(BranchService);
 
-  protected readonly open = signal(false);
+  protected readonly open = this.branchService.switcherOpen;
   protected readonly branches = this.branchService.branches;
   protected readonly selected = this.branchService.selectedBranch;
   protected readonly locating = this.branchService.locating;

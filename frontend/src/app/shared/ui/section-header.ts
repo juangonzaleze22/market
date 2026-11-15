@@ -19,7 +19,12 @@ import { RouterLink } from '@angular/router';
       </div>
       <ng-content select="[section-extra]" />
       @if (link()) {
-        <a [routerLink]="link()" class="btn-view-all" data-testid="view-all-link">
+        <a
+          [routerLink]="link()"
+          [queryParams]="linkQueryParams()"
+          class="btn-view-all"
+          data-testid="view-all-link"
+        >
           {{ linkText() }}
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
             <path d="M5 12h14M12 5l7 7-7 7" />
@@ -126,6 +131,28 @@ import { RouterLink } from '@angular/router';
       color: var(--color-on-primary) !important;
       border-color: var(--color-primary) !important;
     }
+
+    @media (max-width: 767px) {
+      .section-header {
+        align-items: center;
+        gap: 8px;
+      }
+
+      .section-subtitle {
+        font-size: 12px;
+      }
+
+      .section-title {
+        font-size: 18px;
+        line-height: 24px;
+      }
+
+      .btn-view-all {
+        font-size: 12px;
+        line-height: 14px;
+        padding: 8px 14px;
+      }
+    }
   `,
 })
 export class SectionHeader {
@@ -136,6 +163,7 @@ export class SectionHeader {
   readonly tabs = input<string[]>([]);
   readonly activeTab = input<string>('');
   readonly link = input('');
+  readonly linkQueryParams = input<Record<string, string>>({});
   readonly linkText = input('Ver todo');
   readonly tabChange = output<string>();
 }

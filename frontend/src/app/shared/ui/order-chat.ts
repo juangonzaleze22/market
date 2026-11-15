@@ -17,15 +17,17 @@ import { UploadService } from '../../core/services/upload.service';
   selector: 'app-order-chat',
   imports: [DatePipe],
   template: `
-    <div class="order-chat" data-testid="chat-panel">
-      <div class="order-chat-header">
-        <h3 class="text-body-sm-strong" data-testid="chat-title">
-          {{ mode() === 'customer' ? 'Chat con la tienda' : 'Chat con el cliente' }}
-        </h3>
-        <span class="order-chat-status" [class.online]="chat.connected() && !closed()">
-          {{ closed() ? 'Chat cerrado' : chat.connected() ? 'En línea' : 'Sin conexión' }}
-        </span>
-      </div>
+    <div class="order-chat" [class.compact]="compact()" data-testid="chat-panel">
+      @if (!compact()) {
+        <div class="order-chat-header">
+          <h3 class="text-body-sm-strong" data-testid="chat-title">
+            {{ mode() === 'customer' ? 'Chat con la tienda' : 'Chat con el cliente' }}
+          </h3>
+          <span class="order-chat-status" [class.online]="chat.connected() && !closed()">
+            {{ closed() ? 'Chat cerrado' : chat.connected() ? 'En línea' : 'Sin conexión' }}
+          </span>
+        </div>
+      }
 
       <div class="order-chat-messages" data-testid="chat-messages">
         @if (messages().length === 0) {
@@ -185,6 +187,10 @@ import { UploadService } from '../../core/services/upload.service';
     </div>
   `,
   styles: `
+    :host {
+      display: block;
+    }
+
     .order-chat {
       display: flex;
       flex-direction: column;
@@ -193,6 +199,22 @@ import { UploadService } from '../../core/services/upload.service';
       border-radius: 12px;
       padding: 16px;
       background-color: var(--color-canvas);
+    }
+
+    .order-chat.compact {
+      height: 100%;
+      min-height: 0;
+      gap: 10px;
+      border: none;
+      border-radius: 0;
+      padding: 12px 14px 14px;
+      background-color: var(--color-canvas);
+    }
+
+    .order-chat.compact .order-chat-messages {
+      flex: 1;
+      max-height: none;
+      min-height: 0;
     }
 
     .order-chat-header {
@@ -398,6 +420,7 @@ export class OrderChat {
   readonly orderId = input.required<string>();
   readonly orderStatus = input<string>('');
   readonly mode = input<'customer' | 'admin' | 'delivery'>('customer');
+  readonly compact = input(false);
 
   private readonly upload = inject(UploadService);
   private readonly destroyRef = inject(DestroyRef);

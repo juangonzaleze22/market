@@ -22,6 +22,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/seed-assets ./seed-assets
 
 # La carpeta de uploads la monta docker-compose como volumen.
 # Se crea con permisos del usuario "node" para que el volumen nazca escribible.

@@ -59,6 +59,7 @@ export class BranchService {
   readonly loaded = signal(false);
   readonly locating = signal(false);
   readonly locationError = signal('');
+  readonly switcherOpen = signal(false);
   private zonesCache = new Map<string, DeliveryZone[]>();
   private userChoseBranch = false;
 

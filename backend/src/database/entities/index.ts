@@ -16,6 +16,8 @@ export { SiteSettings } from './site-settings.entity.js';
 export { Tag } from './tag.entity.js';
 export { FlashSale } from './flash-sale.entity.js';
 export { FlashSaleItem } from './flash-sale-item.entity.js';
+export { Collection } from './collection.entity.js';
+export { CollectionProduct } from './collection-product.entity.js';
 export {
   OrderMessage,
   MessageSenderRole,

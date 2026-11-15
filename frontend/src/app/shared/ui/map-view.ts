@@ -1,6 +1,7 @@
 import { Component, effect, ElementRef, input, OnDestroy, viewChild } from '@angular/core';
 import * as L from 'leaflet';
 import { environment } from '../../../environments/environment';
+import { readCssColor } from '../../core/utils/color.util';
 
 const MAP_CENTER: L.LatLngTuple = [environment.mapCenterLat, environment.mapCenterLng];
 const DEFAULT_ZOOM = environment.mapZoom;
@@ -79,7 +80,7 @@ export class MapViewComponent implements OnDestroy {
         html: `<div style="
           width: 24px;
           height: 24px;
-          background-color: #1C8057;
+          background-color: ${readCssColor('--color-primary', '#1C8057')};
           border: 3px solid white;
           border-radius: 50%;
           box-shadow: 0 2px 6px rgba(0,0,0,0.3);

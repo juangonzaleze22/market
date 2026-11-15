@@ -8,6 +8,7 @@ import { AdminService, AdminOrder, AdminOrderDetail } from '../../../core/servic
 import { ToastService } from '../../../core/services/toast.service';
 import { NotificationsService } from '../../../core/services/notifications.service';
 import { ChatService, OrderStatusEvent } from '../../../core/services/chat.service';
+import { ChatWidgetService } from '../../../core/services/chat-widget.service';
 import { ModalComponent } from '../../../shared/ui/modal';
 import { ConfirmDialogComponent } from '../../../shared/ui/confirm-dialog';
 import { MapViewComponent } from '../../../shared/ui/map-view';
@@ -128,7 +129,7 @@ interface ModalStep {
             >
               Estado{{ sortIcon('status') }}
             </div>
-            <div class="col-span-3">Flujo</div>
+            <div class="col-span-2">Flujo</div>
             <div
               class="col-span-2 cursor-pointer select-none hover:bg-white/10 rounded px-sm py-xxs -mx-sm"
               (click)="onSort('totalAmount')"
@@ -143,7 +144,7 @@ interface ModalStep {
             >
               Fecha{{ sortIcon('createdAt') }}
             </div>
-            <div class="col-span-1 text-right">Acciones</div>
+            <div class="col-span-2 text-right">Acciones</div>
           </div>
           <div class="border border-surface-pressed border-t-0 rounded-b-xl">
             @for (order of orders(); track order.id) {
@@ -155,14 +156,28 @@ interface ModalStep {
                 <div class="col-span-2">
                   <app-order-status [status]="order.status" size="md" />
                 </div>
-                <div class="col-span-3">
+                <div class="col-span-2">
                   <app-order-flow-steps [status]="order.status" [orderId]="order.id" />
                 </div>
                 <div class="col-span-2 text-body-sm">{{ order.totalAmount | currency }}</div>
                 <div class="col-span-2 text-body-sm text-body">
                   {{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}
                 </div>
-                <div class="col-span-1 flex items-center justify-end">
+                <div class="col-span-2 flex items-center justify-end gap-xs">
+                  @if (chatEnabled(order.status)) {
+                    <button
+                      type="button"
+                      class="admin-icon-btn"
+                      (click)="openChat(order.id)"
+                      title="Abrir chat"
+                      [attr.aria-label]="'Abrir chat del pedido ' + order.orderNumber"
+                      [attr.data-testid]="'open-chat-' + order.id"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M3 3.5A1.5 1.5 0 0 1 4.5 2h11A1.5 1.5 0 0 1 17 3.5v9a1.5 1.5 0 0 1-1.5 1.5H9l-4.4 3.3A.75.75 0 0 1 3.5 16.7V14H3.5A1.5 1.5 0 0 1 2 12.5v-9Z" />
+                      </svg>
+                    </button>
+                  }
                   <button
                     type="button"
                     class="admin-icon-btn"
@@ -215,6 +230,7 @@ interface ModalStep {
                     type="button"
                     (click)="toggleDropdown($event, order.id)"
                     class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-canvas-soft transition-colors text-body"
+                    [attr.data-testid]="'order-actions-' + order.id"
                   >
                     <svg viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
                       <path
@@ -244,6 +260,19 @@ interface ModalStep {
                         </svg>
                         Ver detalle
                       </button>
+                      @if (chatEnabled(order.status)) {
+                        <button
+                          type="button"
+                          (click)="openChat(order.id)"
+                          [attr.data-testid]="'mobile-open-chat-' + order.id"
+                          class="flex items-center gap-md w-full px-lg py-md text-body-sm text-body hover:bg-canvas-soft transition-colors text-left"
+                        >
+                          <svg viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 shrink-0">
+                            <path d="M3 3.5A1.5 1.5 0 0 1 4.5 2h11A1.5 1.5 0 0 1 17 3.5v9a1.5 1.5 0 0 1-1.5 1.5H9l-4.4 3.3A.75.75 0 0 1 3.5 16.7V14H3.5A1.5 1.5 0 0 1 2 12.5v-9Z" />
+                          </svg>
+                          Abrir chat
+                        </button>
+                      }
                     </div>
                   }
                 </div>
@@ -566,6 +595,28 @@ interface ModalStep {
               </div>
 
               @if (chatEnabled(order.status)) {
+                <div class="flex justify-end mb-sm">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-xs text-body-sm font-medium text-primary hover:underline"
+                    (click)="openChat(order.id)"
+                    data-testid="open-chat-detail"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    Abrir chat
+                  </button>
+                </div>
                 <app-order-chat
                   [orderId]="order.id"
                   [orderStatus]="order.status"
@@ -829,7 +880,7 @@ interface ModalStep {
 
     :host ::ng-deep .modal-timeline-step.clickable:hover .modal-step-icon {
       transform: scale(1.1);
-      box-shadow: 0 0 0 4px rgba(28, 128, 87, 0.12);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 12%, transparent);
     }
 
     :host ::ng-deep .modal-timeline-step.clickable:disabled {
@@ -1058,6 +1109,7 @@ export class AdminOrders implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService);
   private readonly notifications = inject(NotificationsService);
   private readonly chat = inject(ChatService);
+  private readonly chatWidget = inject(ChatWidgetService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private newOrderSub?: { unsubscribe(): void };
@@ -1193,6 +1245,13 @@ export class AdminOrders implements OnInit, OnDestroy {
     if (this.isSavingStatus()) return;
     this.selectedOrder.set(null);
     this.statusError.set('');
+  }
+
+  protected openChat(orderId: string): void {
+    this.openDropdown.set(null);
+    this.selectedOrder.set(null);
+    this.statusError.set('');
+    this.chatWidget.openConversation(orderId);
   }
 
   protected toggleDropdown(event: Event, id: string): void {

@@ -2,6 +2,7 @@ import {
   IsString,
   IsOptional,
   IsArray,
+  IsHexColor,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -20,6 +21,54 @@ class SecondaryLinkDto {
 
   @IsString()
   url: string;
+}
+
+class ThemeColorsDto {
+  @IsHexColor()
+  primary: string;
+
+  @IsHexColor()
+  onPrimary: string;
+
+  @IsHexColor()
+  accent: string;
+
+  @IsHexColor()
+  onAccent: string;
+
+  @IsHexColor()
+  link: string;
+}
+
+class ThemeBrandingDto {
+  @IsString()
+  brandName: string;
+
+  @IsString()
+  @IsOptional()
+  logoUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  logoDarkUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  faviconUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  pwaIconUrl?: string;
+}
+
+class ThemeDto {
+  @ValidateNested()
+  @Type(() => ThemeColorsDto)
+  colors: ThemeColorsDto;
+
+  @ValidateNested()
+  @Type(() => ThemeBrandingDto)
+  branding: ThemeBrandingDto;
 }
 
 export class UpdateSiteSettingsDto {
@@ -64,4 +113,9 @@ export class UpdateSiteSettingsDto {
     pago_movil?: { bank: string; phone: string; holderName: string; idDocument: string };
     zelle?: { email: string; holderName: string };
   };
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ThemeDto)
+  theme?: ThemeDto;
 }

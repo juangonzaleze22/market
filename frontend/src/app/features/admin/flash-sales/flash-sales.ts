@@ -618,7 +618,7 @@ const EMPTY_FORM: FlashSaleForm = {
 
     .product-select-item.selected {
       border-color: var(--color-primary);
-      background-color: rgba(28, 128, 87, 0.05);
+      background-color: color-mix(in srgb, var(--color-primary) 5%, transparent);
     }
 
     .product-select-main {
@@ -717,7 +717,7 @@ const EMPTY_FORM: FlashSaleForm = {
     .btn-filter.active {
       border-color: var(--color-primary);
       color: var(--color-primary);
-      background: rgba(28, 128, 87, 0.05);
+      background: color-mix(in srgb, var(--color-primary) 5%, transparent);
     }
 
     .filter-badge {

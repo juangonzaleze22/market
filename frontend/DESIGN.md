@@ -4,16 +4,16 @@
 **Theme:** light
 
 **Source inspiration:** Grocery e-commerce platforms with green + yellow palette
-Green (`#1a5632`) represents freshness and nature; Yellow (`#f5a623`) adds energy and highlights key actions.
+Green (`#1C8057`) represents freshness and nature; Yellow (`#f5a623`) adds energy and highlights key actions. Both, along with the text-on-color and link tokens, are configurable at runtime from Admin → Configuración → Apariencia y Marca.
 
 ## Tokens — Colors
 
 | Name | Value | Token | Role |
 |---|---|---|---|
-| primary | `#1a5632` | `--color-primary` | Verde oscuro — color principal de marca, navbar, botones primarios |
-| on primary | `#ffffff` | `--color-on-primary` | Texto sobre fondo verde |
-| accent | `#f5a623` | `--color-accent` | Amarillo — acentos, badges, banner superior, hover states |
-| on accent | `#1a5632` | `--color-on-accent` | Texto sobre fondo amarillo |
+| primary | `#1C8057` | `--color-primary` | Verde — color principal de marca, navbar, botones primarios. Configurable en Admin → Configuración → Apariencia |
+| on primary | `#ffffff` | `--color-on-primary` | Texto sobre fondo verde. Configurable |
+| accent | `#f5a623` | `--color-accent` | Amarillo — acentos, badges, banner superior, hover states. Configurable |
+| on accent | `#1C8057` | `--color-on-accent` | Texto sobre fondo amarillo. Configurable |
 | ink | `#000000` | `--color-ink` | Texto principal |
 | body | `#5e5e5e` | `--color-body` | Texto secundario/descripciones |
 | mute | `#afafaf` | `--color-mute` | Texto terciario, placeholders |
@@ -22,9 +22,16 @@ Green (`#1a5632`) represents freshness and nature; Yellow (`#f5a623`) adds energ
 | canvas soft | `#efefef` | `--color-canvas-soft` | Fondos de inputs, cards suaves |
 | canvas softer | `#f3f3f3` | `--color-canvas-softer` | Fondos muy sutiles |
 | surface pressed | `#e2e2e2` | `--color-surface-pressed` | Hover states, bordes, separadores |
-| link | `#1a5632` | `--color-link` | Links — verde oscuro |
+| link | `#1C8057` | `--color-link` | Links — verde oscuro. Configurable |
 | on dark | `#ffffff` | `--color-on-dark` | Texto sobre fondos oscuros |
 | black elevated | `#282828` | `--color-black-elevated` | Superficies oscuras elevadas |
+
+> **Runtime theming:** `ThemeService` (`core/services/theme.service.ts`) sobrescribe
+> los tokens de marca en `document.documentElement` a partir de `SiteSettings.theme`.
+> Por eso los componentes deben consumir tokens (`bg-primary`, `text-accent`,
+> `var(--color-primary)`) y nunca hex de marca hardcodeados. Al usar modificadores
+> de opacidad (`bg-primary/10`), Tailwind v4 genera el fallback con `var(--color-primary)`
+> dentro de `@supports`, por lo que también respetan el tema en navegadores modernos.
 
 ## Tokens — Typography
 

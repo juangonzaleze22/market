@@ -1437,7 +1437,7 @@ export class AdminService {
         saved.id,
         ORDER_ACCEPTED_MESSAGE,
       );
-      this.orderChatGateway.emitToOrder(saved.id, 'message', systemMessage);
+      await this.orderChatGateway.emitMessage(systemMessage);
     }
 
     if (previousStatus !== saved.status) {

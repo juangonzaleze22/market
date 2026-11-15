@@ -5,6 +5,27 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export interface SiteThemeColors {
+  primary: string;
+  onPrimary: string;
+  accent: string;
+  onAccent: string;
+  link: string;
+}
+
+export interface SiteThemeBranding {
+  brandName: string;
+  logoUrl: string;
+  logoDarkUrl: string;
+  faviconUrl: string;
+  pwaIconUrl: string;
+}
+
+export interface SiteTheme {
+  colors: SiteThemeColors;
+  branding: SiteThemeBranding;
+}
+
 @Entity('site_settings')
 export class SiteSettings {
   @PrimaryGeneratedColumn('uuid')
@@ -44,6 +65,10 @@ export class SiteSettings {
     pago_movil?: { bank: string; phone: string; holderName: string; idDocument: string };
     zelle?: { email: string; holderName: string };
   } | null;
+
+  // ─── Theme ─────────────────────────────────────────────────────
+  @Column({ type: 'simple-json', nullable: true })
+  theme: SiteTheme | null;
 
   @UpdateDateColumn()
   updatedAt: Date;

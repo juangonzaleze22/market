@@ -108,7 +108,7 @@ import 'swiper/css/effect-flip';
       .banner-subtitle {
         font-size: 0.85rem;
         font-weight: 500;
-        color: #c5e6a0;
+        color: color-mix(in srgb, var(--color-accent) 55%, #ffffff);
         letter-spacing: 0.5px;
         margin-bottom: var(--spacing-sm);
       }
@@ -127,7 +127,7 @@ import 'swiper/css/effect-flip';
         gap: var(--spacing-sm);
         margin-top: var(--spacing-xl);
         padding: var(--spacing-md) var(--spacing-xl);
-        background: #00b852;
+        background: var(--color-primary);
         color: #ffffff;
         font-size: 0.95rem;
         font-weight: 600;
@@ -140,7 +140,7 @@ import 'swiper/css/effect-flip';
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       }
       .banner-cta:hover {
-        background: #009e45;
+        background: color-mix(in srgb, var(--color-primary) 85%, #000000);
         transform: translateY(-1px);
       }
       .banner-cta svg {

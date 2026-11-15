@@ -7,6 +7,7 @@ import {
   viewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
+import { readCssColor } from '../../core/utils/color.util';
 import { environment } from '../../../environments/environment';
 
 const DEFAULT_ZOOM = environment.mapZoom;
@@ -120,7 +121,7 @@ export class MapPreviewComponent implements OnDestroy {
     if (!this.map) return;
     const icon = L.divIcon({
       className: 'preview-marker',
-      html: `<div style="width:18px;height:18px;background:#1C8057;border:3px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 5px rgba(0,0,0,0.35);"></div>`,
+      html: `<div style="width:18px;height:18px;background:${readCssColor('--color-primary', '#1C8057')};border:3px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 5px rgba(0,0,0,0.35);"></div>`,
       iconSize: [18, 18],
       iconAnchor: [9, 18],
     });

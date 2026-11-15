@@ -96,8 +96,12 @@ export async function ensureAddress(
 
 export async function firstProductId(
   request: APIRequestContext,
+  branchId?: string,
 ): Promise<string> {
-  const res = await request.get(`${API_URL}/products?inStock=true`);
+  const url = branchId
+    ? `${API_URL}/products?inStock=true&branchId=${branchId}`
+    : `${API_URL}/products?inStock=true`;
+  const res = await request.get(url);
   const body = await res.json();
   const list = Array.isArray(body) ? body : body?.data;
   expect(Array.isArray(list) && list.length > 0, 'no products seeded').toBeTruthy();

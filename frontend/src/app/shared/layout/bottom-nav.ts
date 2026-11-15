@@ -48,9 +48,21 @@ import { CartService } from '../../core/services/cart.service';
           <span class="text-caption">Carrito</span>
         </button>
         <a
-          routerLink="/orders"
+          routerLink="/messages"
           routerLinkActive="text-primary"
           class="flex flex-col items-center gap-xs p-sm text-mute"
+          data-testid="bottom-chat-link"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="text-caption">Chat</span>
+        </a>
+        <a
+          routerLink="/account"
+          routerLinkActive="text-primary"
+          class="flex flex-col items-center gap-xs p-sm text-mute"
+          data-testid="bottom-profile-link"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
@@ -60,6 +72,11 @@ import { CartService } from '../../core/services/cart.service';
         </a>
       </div>
     </nav>
+  `,
+  styles: `
+    nav {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
   `,
 })
 export class BottomNav {

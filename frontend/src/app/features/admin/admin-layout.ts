@@ -4,10 +4,11 @@ import {
   DashboardShell,
   DashboardNavItem,
 } from '../../shared/layout/dashboard-shell';
+import { ChatWidget } from '../../shared/ui/chat-widget';
 
 @Component({
   selector: 'app-admin-layout',
-  imports: [RouterOutlet, DashboardShell],
+  imports: [RouterOutlet, DashboardShell, ChatWidget],
   template: `
     <app-dashboard-shell
       testIdPrefix="admin"
@@ -17,6 +18,7 @@ import {
     >
       <router-outlet />
     </app-dashboard-shell>
+    <app-chat-widget [raised]="false" />
   `,
 })
 export class AdminLayout {
@@ -25,6 +27,7 @@ export class AdminLayout {
     { path: '/admin/users', label: 'Usuarios', testId: 'users', exact: false },
     { path: '/admin/products', label: 'Productos', testId: 'products', exact: false },
     { path: '/admin/categories', label: 'Categorías', testId: 'categories', exact: false },
+    { path: '/admin/collections', label: 'Secciones', testId: 'collections', exact: false },
     { path: '/admin/orders', label: 'Pedidos', testId: 'orders', exact: false },
     { path: '/admin/branches', label: 'Sucursales', testId: 'branches', exact: false },
     { path: '/admin/expenses', label: 'Gastos', testId: 'expenses', exact: false },

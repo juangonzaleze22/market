@@ -43,6 +43,7 @@ export interface ProductQuery {
   categoryId?: string;
   tagId?: string;
   tagIds?: string[];
+  ids?: string[];
   search?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -71,6 +72,9 @@ export class ProductService {
     if (query.tagId) params = params.set('tagId', query.tagId);
     if (query.tagIds && query.tagIds.length > 0) {
       params = params.set('tagIds', query.tagIds.join(','));
+    }
+    if (query.ids && query.ids.length > 0) {
+      params = params.set('ids', query.ids.join(','));
     }
     if (query.search) params = params.set('search', query.search);
     if (query.minPrice !== undefined) params = params.set('minPrice', String(query.minPrice));

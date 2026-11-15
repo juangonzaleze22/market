@@ -1,8 +1,17 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AdminService, SiteSettings } from '../../../core/services/admin.service';
+import { SiteSettingsService } from '../../../core/services/site-settings.service';
 import { ToastService } from '../../../core/services/toast.service';
+import {
+  DEFAULT_SITE_THEME,
+  SiteTheme,
+  SiteThemeBranding,
+  SiteThemeColors,
+  normalizeTheme,
+} from '../../../core/models/site-theme';
+import { contrastRatio, isValidHex } from '../../../core/utils/color.util';
 
 @Component({
   selector: 'app-admin-settings',
@@ -207,6 +216,81 @@ import { ToastService } from '../../../core/services/toast.service';
               </div>
             </div>
           </div>
+
+          <!-- Appearance Section -->
+          <div class="settings-section" data-testid="settings-theme">
+            <h2 class="settings-section-title">Apariencia y Marca</h2>
+            <p class="settings-section-desc">Personaliza los colores, el logo y los iconos del sitio. Los cambios se aplican al guardar.</p>
+
+            <div class="settings-fields">
+              <div>
+                <label class="settings-label" for="brandName">Nombre de la marca</label>
+                <input id="brandName" type="text" [ngModel]="themeForm().branding.brandName"
+                  (ngModelChange)="setBrandName($event)" class="settings-input"
+                  placeholder="Ej: Tu Mercadito" data-testid="settings-brand-name" />
+              </div>
+
+              <div class="settings-color-grid">
+                @for (field of colorFields; track field.key) {
+                  <div class="settings-color-field">
+                    <label class="settings-label">{{ field.label }}</label>
+                    <div class="settings-color-row">
+                      <input type="color" class="settings-color-swatch"
+                        [ngModel]="themeForm().colors[field.key]"
+                        (ngModelChange)="setColor(field.key, $event)"
+                        [attr.data-testid]="'settings-color-' + field.key" />
+                      <input type="text" class="settings-input"
+                        [ngModel]="themeForm().colors[field.key]"
+                        (ngModelChange)="setColor(field.key, $event)"
+                        [attr.data-testid]="'settings-hex-' + field.key" />
+                    </div>
+                  </div>
+                }
+              </div>
+
+              @if (contrastIssues().length > 0) {
+                <div class="settings-warning" data-testid="settings-contrast-warning">
+                  <p class="settings-warning-title">Aviso de contraste</p>
+                  <ul class="settings-warning-list">
+                    @for (issue of contrastIssues(); track issue) {
+                      <li>{{ issue }}</li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              @for (field of brandingFields; track field.key) {
+                <div class="settings-brand-field">
+                  <label class="settings-label">{{ field.label }}</label>
+                  <p class="settings-brand-hint">{{ field.hint }}</p>
+                  <div class="settings-brand-row">
+                    <div class="settings-brand-preview">
+                      <img [src]="themeForm().branding[field.key]" alt="" />
+                    </div>
+                    <input type="text" class="settings-input"
+                      [ngModel]="themeForm().branding[field.key]"
+                      (ngModelChange)="setBrandingUrl(field.key, $event)"
+                      [attr.data-testid]="'settings-' + field.key" />
+                    <label class="settings-upload-btn">
+                      @if (uploading() === field.key) {
+                        <span class="btn-spinner"></span>
+                      } @else {
+                        Subir
+                      }
+                      <input type="file" accept="image/*" class="hidden"
+                        (change)="onBrandingFile(field.key, $event)" />
+                    </label>
+                  </div>
+                </div>
+              }
+
+              <div class="flex justify-end">
+                <button type="button" class="settings-add-btn" (click)="resetTheme()" data-testid="settings-theme-reset">
+                  Restaurar apariencia por defecto
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Save button -->
@@ -351,11 +435,177 @@ import { ToastService } from '../../../core/services/toast.service';
       color: var(--color-ink);
       margin: 0;
     }
+
+    .settings-color-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-lg);
+    }
+
+    @media (max-width: 640px) {
+      .settings-color-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .settings-color-row {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .settings-color-swatch {
+      width: 44px;
+      height: 40px;
+      padding: 0;
+      border: 1px solid var(--color-surface-pressed);
+      border-radius: var(--radius-lg);
+      background: none;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .settings-warning {
+      padding: var(--spacing-md) var(--spacing-lg);
+      border: 1px solid #fecaca;
+      border-radius: var(--radius-lg);
+      background-color: #fef2f2;
+      color: #991b1b;
+    }
+
+    .settings-warning-title {
+      margin: 0 0 var(--spacing-xxs);
+      font-size: var(--text-body-sm-strong);
+      font-weight: 600;
+    }
+
+    .settings-warning-list {
+      margin: 0;
+      padding-left: var(--spacing-lg);
+      font-size: var(--text-body-xs);
+      line-height: var(--text-body-xs--line-height);
+    }
+
+    .settings-brand-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xxs);
+    }
+
+    .settings-brand-hint {
+      margin: 0;
+      font-size: var(--text-body-xs);
+      line-height: var(--text-body-xs--line-height);
+      color: var(--color-body);
+    }
+
+    .settings-brand-row {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+    }
+
+    .settings-brand-preview {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-surface-pressed);
+      background-color: var(--color-canvas-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .settings-brand-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .settings-upload-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 88px;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border: 1px solid var(--color-surface-pressed);
+      border-radius: var(--radius-pill);
+      background-color: var(--color-canvas);
+      color: var(--color-ink);
+      font-size: var(--text-body-sm-strong);
+      line-height: var(--text-body-sm-strong--line-height);
+      font-weight: 500;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background-color 0.2s ease;
+    }
+
+    .settings-upload-btn:hover {
+      background-color: var(--color-canvas-soft);
+    }
   `,
 })
 export class AdminSettings implements OnInit {
   private readonly adminService = inject(AdminService);
   private readonly toast = inject(ToastService);
+  private readonly siteSettings = inject(SiteSettingsService);
+
+  protected readonly themeForm = signal<SiteTheme>(normalizeTheme(DEFAULT_SITE_THEME));
+  protected readonly uploading = signal<keyof SiteThemeBranding | null>(null);
+
+  protected readonly colorFields: { key: keyof SiteThemeColors; label: string }[] = [
+    { key: 'primary', label: 'Color primario' },
+    { key: 'onPrimary', label: 'Texto sobre primario' },
+    { key: 'accent', label: 'Color de acento' },
+    { key: 'onAccent', label: 'Texto sobre acento' },
+    { key: 'link', label: 'Color de enlaces' },
+  ];
+
+  protected readonly brandingFields: {
+    key: keyof SiteThemeBranding;
+    label: string;
+    hint: string;
+  }[] = [
+    {
+      key: 'logoUrl',
+      label: 'Logo principal',
+      hint: 'Se usa en fondos claros, como la página "Quiénes somos" y el login.',
+    },
+    {
+      key: 'logoDarkUrl',
+      label: 'Logo para navbar',
+      hint: 'Versión clara del logo para el navbar y el panel de administración.',
+    },
+    {
+      key: 'faviconUrl',
+      label: 'Favicon',
+      hint: 'Icono de la pestaña del navegador (PNG, WebP o ICO).',
+    },
+    {
+      key: 'pwaIconUrl',
+      label: 'Icono PWA',
+      hint: 'Icono de instalación de la app. Idealmente cuadrado de 512×512.',
+    },
+  ];
+
+  protected readonly contrastIssues = computed<string[]>(() => {
+    const colors = this.themeForm().colors;
+    const issues: string[] = [];
+    const check = (label: string, background: string, foreground: string) => {
+      if (!isValidHex(background) || !isValidHex(foreground)) {
+        return;
+      }
+      const ratio = contrastRatio(background, foreground);
+      if (ratio < 4.5) {
+        issues.push(`${label}: ${ratio.toFixed(2)}:1 (mínimo recomendado 4.5:1)`);
+      }
+    };
+    check('Texto sobre el color primario', colors.primary, colors.onPrimary);
+    check('Texto sobre el color de acento', colors.accent, colors.onAccent);
+    return issues;
+  });
 
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
@@ -380,6 +630,7 @@ export class AdminSettings implements OnInit {
     this.adminService.getSettings().subscribe({
       next: (settings) => {
         this.form.set(settings);
+        this.themeForm.set(normalizeTheme(settings.theme));
         this.secondaryLinks.set(settings.secondaryLinks ? [...settings.secondaryLinks] : []);
         this.socialLinks.set(settings.socialLinks ? [...settings.socialLinks] : []);
         if (settings.paymentInfo?.pago_movil) {
@@ -432,13 +683,77 @@ export class AdminSettings implements OnInit {
     );
   }
 
+  protected setBrandName(value: string): void {
+    this.themeForm.update((theme) => ({
+      ...theme,
+      branding: { ...theme.branding, brandName: value },
+    }));
+    this.previewTheme();
+  }
+
+  protected setColor(key: keyof SiteThemeColors, value: string): void {
+    this.themeForm.update((theme) => ({
+      ...theme,
+      colors: { ...theme.colors, [key]: value },
+    }));
+    this.previewTheme();
+  }
+
+  protected setBrandingUrl(key: keyof SiteThemeBranding, value: string): void {
+    this.themeForm.update((theme) => ({
+      ...theme,
+      branding: { ...theme.branding, [key]: value },
+    }));
+    this.previewTheme();
+  }
+
+  protected resetTheme(): void {
+    this.themeForm.set(normalizeTheme(DEFAULT_SITE_THEME));
+    this.previewTheme();
+  }
+
+  protected onBrandingFile(key: keyof SiteThemeBranding, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    this.uploading.set(key);
+    this.adminService
+      .uploadImage('branding', file)
+      .pipe(
+        finalize(() => {
+          this.uploading.set(null);
+          input.value = '';
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          this.setBrandingUrl(key, response.url);
+          this.toast.success('Imagen actualizada');
+        },
+        error: () => this.toast.error('No se pudo subir la imagen'),
+      });
+  }
+
+  private previewTheme(): void {
+    const colors = this.themeForm().colors;
+    const allValid = (Object.keys(colors) as (keyof SiteThemeColors)[]).every((key) =>
+      isValidHex(colors[key]),
+    );
+    if (allValid) {
+      this.siteSettings.applyThemePreview(this.themeForm());
+    }
+  }
+
   protected save(): void {
     this.saving.set(true);
     this.success.set(false);
     this.error.set('');
 
     const f = this.form();
-    const payload: Record<string, unknown> = {
+    const payload: Partial<SiteSettings> = {
       topBannerText: f.topBannerText,
       topBannerPhone: f.topBannerPhone,
       topBannerCtaText: f.topBannerCtaText,
@@ -451,6 +766,7 @@ export class AdminSettings implements OnInit {
         pago_movil: { ...this.paymentInfoForm.pago_movil },
         zelle: { ...this.paymentInfoForm.zelle },
       },
+      theme: this.themeForm(),
     };
 
     this.adminService
@@ -458,6 +774,7 @@ export class AdminSettings implements OnInit {
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: () => {
+          this.siteSettings.reload().subscribe();
           this.success.set(true);
           this.toast.success('Configuración guardada');
           setTimeout(() => this.success.set(false), 3000);

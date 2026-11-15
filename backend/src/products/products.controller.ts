@@ -26,6 +26,7 @@ export class ProductsController {
     @Query('categoryId') categoryId?: string,
     @Query('tagId') tagId?: string,
     @Query('tagIds') tagIds?: string,
+    @Query('ids') ids?: string,
     @Query('search') search?: string,
     @Query('minPrice') minPrice?: string,
     @Query('maxPrice') maxPrice?: string,
@@ -39,6 +40,9 @@ export class ProductsController {
       tagId,
       tagIds: tagIds
         ? tagIds.split(',').map((id) => id.trim()).filter(Boolean)
+        : undefined,
+      ids: ids
+        ? ids.split(',').map((id) => id.trim()).filter(Boolean)
         : undefined,
       search,
       minPrice: minPrice ? parseFloat(minPrice) : undefined,

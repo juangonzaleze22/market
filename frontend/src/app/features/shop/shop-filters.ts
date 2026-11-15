@@ -7,6 +7,7 @@ import { Tag } from '../../core/services/product.service';
 export interface ShopFilterState {
   selectedCategorySlugs: string[];
   selectedTagSlugs: string[];
+  collectionSlug: string | null;
   minPrice: number;
   maxPrice: number;
   includeOutOfStock: boolean;
@@ -312,6 +313,7 @@ export class ShopFilters implements OnInit, OnDestroy {
   readonly initialFilters = input<ShopFilterState>({
     selectedCategorySlugs: [],
     selectedTagSlugs: [],
+    collectionSlug: null,
     minPrice: 0,
     maxPrice: 500,
     includeOutOfStock: false,
@@ -396,6 +398,7 @@ export class ShopFilters implements OnInit, OnDestroy {
     this.filterChange.emit({
       selectedCategorySlugs: this.selectedCategorySlugs(),
       selectedTagSlugs: this.selectedTagSlugs(),
+      collectionSlug: this.initialFilters().collectionSlug,
       minPrice: this.localMinPrice(),
       maxPrice: this.localMaxPrice(),
       includeOutOfStock: this.includeOutOfStock(),

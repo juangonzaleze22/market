@@ -3,6 +3,7 @@ import { Breadcrumb, PageHero } from '../../shared/ui/page-hero';
 import { CategoryService } from '../../core/services/category.service';
 import { ProductService } from '../../core/services/product.service';
 import { BranchService } from '../../core/services/branch.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 interface StoryImage {
   src: string;
@@ -55,7 +56,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             Tu tienda de confianza para <span class="text-primary">cada día</span>
           </h2>
           <p class="m-0 measure text-body-lg text-body">
-            En Tu Mercadito creemos que comprar lo esencial debería ser simple, rápido y
+            En {{ branding().brandName }} creemos que comprar lo esencial debería ser simple, rápido y
             confiable. Desde 2021 conectamos a miles de familias con productos de calidad, a
             precios justos y con entregas que llegan cuando prometemos.
           </p>
@@ -74,7 +75,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           </ul>
 
           <div class="story-signature">
-            <img src="/assets/icons/logo.png" alt="Tu Mercadito" class="signature-logo" />
+            <img [src]="branding().logoUrl" [alt]="branding().brandName" class="signature-logo" />
             <p class="m-0 text-body-sm text-body">Equipo fundador · Desde 2021</p>
           </div>
         </div>
@@ -141,7 +142,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       <section class="container-max about-team" data-testid="about-team">
         <div class="team-heading">
           <p class="m-0 text-body-sm font-semibold uppercase tracking-wider text-primary">Nuestro equipo</p>
-          <h2 class="m-0 text-balance text-display-xxl font-bold text-ink max-lg:text-display-xl">Conoce a las personas detrás de <span class="text-primary">Tu Mercadito</span></h2>
+          <h2 class="m-0 text-balance text-display-xxl font-bold text-ink max-lg:text-display-xl">Conoce a las personas detrás de <span class="text-primary">{{ branding().brandName }}</span></h2>
           <p class="m-0 text-body-lg text-body">Un equipo pequeño con una idea grande: hacer tus compras más fáciles.</p>
         </div>
 
@@ -728,6 +729,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   `,
 })
 export class About implements OnInit {
+  protected readonly branding = inject(ThemeService).branding;
   private readonly productService = inject(ProductService);
   private readonly categoryService = inject(CategoryService);
   private readonly branchService = inject(BranchService);

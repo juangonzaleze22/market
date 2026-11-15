@@ -73,3 +73,36 @@ test.describe('Vista de Factura', () => {
     }
   });
 });
+
+test.describe('Perfil mobile', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginViaModal(page, 'test@example.com', 'password');
+  });
+
+  test('el tab Perfil navega al dashboard', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'solo mobile');
+
+    await page.goto('/');
+    await page.locator('[data-testid="bottom-profile-link"]').click();
+
+    await expect(page).toHaveURL(/\/account$/);
+    await expect(page.locator('[data-testid="user-dashboard"]')).toBeVisible({
+      timeout: 10000,
+    });
+  });
+
+  test('acceso a Quiénes somos desde Perfil', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'solo mobile');
+
+    await page.goto('/account');
+    await expect(page.locator('[data-testid="mobile-more-menu"]')).toBeVisible({
+      timeout: 10000,
+    });
+    await page.locator('[data-testid="mobile-more-about"]').click();
+
+    await expect(page).toHaveURL(/\/about$/);
+    await expect(page.locator('[data-testid="page-hero-title"]')).toHaveText(
+      'Quiénes somos',
+    );
+  });
+});
